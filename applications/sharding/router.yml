@@ -1,0 +1,108 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: shard-router
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+        - cluster: https://kubernetes.default.svc                                         
+  template:
+    metadata:
+      name: sharding-router
+    spec:
+      project: "transactions-router"
+      source:
+        repoURL: 'http://chartmuseum.chartmuseum.svc.cluster.local:8080'
+        chart: sample
+        targetRevision: 0.1.0
+        helm:
+          releaseName: shard-router
+          valuesObject:
+            app:
+              name: shard-router
+              image: docker.io/fidelissauro/msc-shard-router:latest
+              namespace: shard-router
+              iam: ""
+              capacity:
+                requests: 
+                  cpu: 100m
+                  memory: 128Mi
+                limits: 
+                  cpu: 200m
+                  memory: 256Mi
+                autoscaling: {}
+                min: 1
+                max: 10
+              rollout:
+                strategy:
+                  canary:
+                    steps:
+                    # - setWeight: 0
+                    # - pause: { }
+                    - setWeight: 100
+              envs:
+                - name: VERSION
+                  value: "shard-v1"
+                - name: ROUTER_PORT
+                  value: "8080"
+                - name: SHARDING_KEY
+                  value: "id_client"
+                - name: SHARD_01_URL
+                  value: "http://transactions.shard-01.svc.cluster.local:8080"
+                - name: SHARD_02_URL
+                  value: "http://transactions.shard-02.svc.cluster.local:8080"
+                - name: SHARD_03_URL
+                  value: "http://transactions.shard-03.svc.cluster.local:8080"
+              port:
+                name: http-web
+                port: 8080
+                protocol: TCP
+                targetPort: 8080
+              service:
+                type: ClusterIP
+              istio:
+                gateway: 
+                  selector: ingressgateway
+                  # HTTP, HTTP2, GRPC, GRPC-WEB, MONGO, REDIS, MYSQL, TCP
+                  protocol: HTTP 
+                  port: 80
+                host: shard-router.homelab.msfidelis.com.br
+                virtualService:
+                  http:
+                    enabled: true
+                    retries:
+                      attempts: 1
+                      perTryTimeout: 500ms
+                      retryOn: refused-stream
+                DestinationRule:
+                  enabled: true
+
+              prometheus:
+                scrape: "true"
+                port: 8080
+                path: /metrics
+
+              probes:
+                # Criar uma rota de healthcheck depois
+                livenessProbe:
+                  enabled: false
+                  failureThreshold: 10
+                  periodSeconds: 10
+                  httpGet:
+                    path: /healthcheck
+                    port: 8080
+                startupProbe:
+                  enabled: false
+                  failureThreshold: 10
+                  periodSeconds: 10
+                  httpGet:
+                    path: /healthcheck
+                    port: 8080
+
+      destination:
+        server: '{{ cluster }}'
+        namespace: argocd
+      syncPolicy:
+        automated: {}

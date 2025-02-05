@@ -1,0 +1,37 @@
+{{- if .Values.app.istio.destinationRule.enabled }}
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: bookinfo-ratings
+spec:
+  host: ratings.prod.svc.cluster.local
+  trafficPolicy:
+    {{- if .Values.app.istio.destinationRule.loadBalancer.enabled }}
+    loadBalancer:
+      simple: {{ .Values.app.istio.destinationRule.loadBalancer.simple }}
+    {{- end }}
+    {{- if .Values.app.istio.destinationRule.connectionPool.enabled }}
+    connectionPool:
+      {{- if .Values.app.istio.destinationRule.connectionPool.tcp.enabled }}
+      tcp:
+        maxConnections: {{ .Values.app.istio.destinationRule.connectionPool.tcp.maxConnections }}
+        connectTimeout: {{ .Values.app.istio.destinationRule.connectionPool.tcp.connectTimeout }}
+        tcpKeepalive:
+          time: {{ .Values.app.istio.destinationRule.connectionPool.tcp.tcpKeepalive.time }}
+          interval: {{ .Values.app.istio.destinationRule.connectionPool.tcp.tcpKeepalive.interval }}
+      {{- end }}
+      {{- if .Values.app.istio.destinationRule.connectionPool.http.enabled }}
+      http:
+        http1MaxPendingRequests: {{ .Values.app.istio.destinationRule.connectionPool.http.http1MaxPendingRequests }}
+        http2MaxRequests: {{ .Values.app.istio.destinationRule.connectionPool.http.http2MaxRequests }}
+        maxRequestsPerConnection: {{ .Values.app.istio.destinationRule.connectionPool.http.maxRequestsPerConnection }}
+      {{- end }}
+    {{- end }}
+    {{- if .Values.app.istio.destinationRule.outlierDetection.enabled }}
+    outlierDetection:
+      consecutive5xxErrors: {{ .Values.app.istio.destinationRule.outlierDetection.consecutive5xxErrors }}
+      interval: {{ .Values.app.istio.destinationRule.outlierDetection.interval }}
+      baseEjectionTime: {{ .Values.app.istio.destinationRule.outlierDetection.baseEjectionTime }}
+      maxEjectionPercent: {{ .Values.app.istio.destinationRule.outlierDetection.maxEjectionPercent }}
+    {{- end }}
+{{- end }}

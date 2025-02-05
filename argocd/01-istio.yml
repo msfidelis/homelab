@@ -1,0 +1,103 @@
+# apiVersion: argoproj.io/v1alpha1
+# kind: ApplicationSet
+# metadata:
+#   name: istio-base
+#   namespace: argocd
+# spec:
+#   generators:
+#     - list:
+#         elements:
+#           - cluster: https://kubernetes.default.svc
+#   template:
+#     metadata:
+#       name: istio-base
+#     spec:
+#       project: "system"
+#       source:
+#         repoURL: "https://istio-release.storage.googleapis.com/charts"
+#         chart: "base"
+#         targetRevision: "1.22.8"
+#         helm:
+#           releaseName: "istio-base"
+#       destination:
+#         server: "{{ cluster }}"
+#         namespace: istio-system
+#       syncPolicy:
+#         automated: {}
+# ---
+# apiVersion: argoproj.io/v1alpha1
+# kind: ApplicationSet
+# metadata:
+#   name: istiod
+#   namespace: argocd
+# spec:
+#   generators:
+#     - list:
+#         elements:
+#           - cluster: https://kubernetes.default.svc
+#   template:
+#     metadata:
+#       name: istiod
+#     spec:
+#       project: "system"
+#       source:
+#         repoURL: "https://istio-release.storage.googleapis.com/charts"
+#         chart: "istiod"
+#         targetRevision: "1.22.8"
+#         helm:
+#           releaseName: "istiod"
+#           valuesObject:
+#             sidecarInjectorWebhook:
+#               rewriteAppHTTPProbe: false
+#       destination:
+#         server: "{{ cluster }}"
+#         namespace: istio-system
+# ---
+# apiVersion: argoproj.io/v1alpha1
+# kind: ApplicationSet
+# metadata:
+#   name: istio-ingressgateway
+#   namespace: argocd
+# spec:
+#   generators:
+#     - list:
+#         elements:
+#           - cluster: https://kubernetes.default.svc
+#   template:
+#     metadata:
+#       name: istio-ingressgateway
+#     spec:
+#       project: "system"
+#       source:
+#         repoURL: "https://istio-release.storage.googleapis.com/charts"
+#         chart: "gateway"
+#         targetRevision: "1.22.8"
+#         helm:
+#           releaseName: "istio-ingressgateway"
+#           valuesObject:
+#             service:
+#               type: NodePort
+#               ports:
+#                 - name: status-port
+#                   port: 15021
+#                   targetPort: 15021
+#                   nodePort: 30021
+#                   protocol: TCP
+#                 - name: http2
+#                   port: 80
+#                   targetPort: 80
+#                   nodePort: 30080
+#                   protocol: TCP
+#                 - name: https
+#                   port: 443
+#                   targetPort: 443
+#                   nodePort: 30443
+#                   protocol: TCP
+#             autoscaling:
+#               minReplicas: 2
+#               maxReplicas: 6
+#       destination:
+#         server: "{{ cluster }}"
+#         namespace: istio-system
+#       syncPolicy:
+#         automated: {}

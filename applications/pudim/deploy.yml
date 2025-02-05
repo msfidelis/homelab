@@ -1,0 +1,98 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: pudim
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+        - cluster: https://kubernetes.default.svc                                         
+  template:
+    metadata:
+      name: pudim
+    spec:
+      project: "pudim"
+      source:
+        repoURL: 'http://chartmuseum.chartmuseum.svc.cluster.local:8080'
+        chart: sample
+        targetRevision: 0.1.0
+        helm:
+          releaseName: pudim
+          valuesObject:
+            app:
+              name: pudim
+              image: docker.io/fidelissauro/pudim:latest
+              namespace: pudim
+              iam: ""
+              capacity:
+                requests: 
+                  cpu: 100m
+                  memory: 128Mi
+                limits: 
+                  cpu: 200m
+                  memory: 256Mi
+                autoscaling: {}
+                min: 1
+                max: 10
+              rollout:
+                strategy:
+                  canary:
+                    steps:
+                    - setWeight: 0
+                    - pause: { }
+                    - setWeight: 100
+              envs:
+                - name: VERSION
+                  value: "shard-v1"
+              port:
+                name: http-web
+                port: 80
+                protocol: TCP
+                targetPort: 80
+              service:
+                type: ClusterIP
+              istio:
+                gateway: 
+                  selector: ingressgateway
+                  protocol: HTTP 
+                  port: 80
+                host: pudim.homelab.msfidelis.com.br
+                virtualService:
+                  http:
+                    enabled: true
+                    retries:
+                      attempts: 1
+                      perTryTimeout: 500ms
+                      retryOn: refused-stream
+                DestinationRule:
+                  enabled: true
+
+              prometheus:
+                scrape: "true"
+                port: 8080
+                path: /metrics
+
+              probes:
+                livenessProbe:
+                  enabled: true
+                  failureThreshold: 10
+                  periodSeconds: 10
+                  httpGet:
+                    path: /
+                    port: 80
+                startupProbe:
+                  enabled: true
+                  failureThreshold: 10
+                  periodSeconds: 10
+                  httpGet:
+                    path: /
+                    port: 80
+
+      destination:
+        server: '{{ cluster }}'
+        namespace: argocd
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+        automated: {}

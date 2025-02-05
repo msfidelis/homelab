@@ -1,0 +1,48 @@
+
+
+
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: db
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:     
+          - shard: "01"
+            cluster: https://kubernetes.default.svc
+          - shard: "02"
+            cluster: https://kubernetes.default.svc
+          - shard: "03"
+            cluster: https://kubernetes.default.svc                                  
+  template:
+    metadata:
+      name: db-{{ shard }}
+    spec:
+      project: "transactions-shard-{{ shard }}"
+      source:
+        repoURL: "registry-1.docker.io" # OCI Repository
+        chart: "bitnamicharts/postgresql"
+        targetRevision: "16.4.5" # Chart version
+        helm:
+          releaseName: db-{{ shard }}
+          valuesObject:
+            auth:
+              username: fidelissauro
+              password: doutorequemtemdoutorado
+              database: transactions
+            global:
+              postgresql:
+                service:
+                  type: ClusterIP
+                  port: 5432 
+
+
+      destination:
+        server: '{{ cluster }}'
+        namespace: shard-{{ shard }}
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+        automated: {}

@@ -1,0 +1,39 @@
+# apiVersion: argoproj.io/v1alpha1
+# kind: ApplicationSet
+# metadata:
+#   name: kiali-server
+#   namespace: argocd
+# spec:
+#   generators:
+#     - list:
+#         elements:
+#           - cluster: https://kubernetes.default.svc
+#   template:
+#     metadata:
+#       name: kiali-server
+#     spec:
+#       project: "system"
+#       source:
+#         repoURL: "https://kiali.org/helm-charts"
+#         chart: "kiali-server"
+#         targetRevision: "1.79.0"
+#         helm:
+#           releaseName: "kiali-server"
+#           valuesObject:
+#             server:
+#               web_fqdn: "kiali.homelab.msfidelis.com.br"
+#             auth:
+#               strategy: "anonymous"
+#             external_services:
+#               tracing:
+#                 use_grpc: false
+#               prometheus:
+#                 url: "http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090"
+#               grafana:
+#                 enabled: true
+#                 url: "http://prometheus-grafana.prometheus.svc.cluster.local:80"
+#       destination:
+#         server: "{{ cluster }}"
+#         namespace: istio-system
+#       syncPolicy:
+#         automated: {}

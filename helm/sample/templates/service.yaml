@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.name }}
+  namespace: {{ .Values.app.namespace }}
+  labels:
+  annotations:
+    prometheus.io/port: "{{ .Values.app.port.port }}"
+    prometheus.io/scrape: "true"
+spec:
+  type: {{ .Values.app.service.type }}
+  selector:
+    app: {{ .Values.app.name }}
+  ports:
+  - name: {{ .Values.app.port.name }}
+    port: {{  .Values.app.port.port }}
+    protocol: {{ .Values.app.port.protocol }}
+    targetPort: {{ int .Values.app.port.targetPort }}
+---
+{{- if .Values.app.rollout.strategy.blueGreen }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.name }}-green
+  namespace: {{ .Values.app.namespace }}
+  labels:
+  annotations:
+    prometheus.io/port: "{{  .Values.app.port.port }}"
+    prometheus.io/scrape: "true"
+spec:
+  type: {{ .Values.app.service.type }}
+  selector:
+    app: {{ .Values.app.name }}
+  ports:
+  - name: {{ .Values.app.port.name }}
+    port: {{  .Values.app.port.port }}
+    protocol: {{ .Values.app.port.protocol }}
+    targetPort: {{ int .Values.app.port.targetPort }}
+{{- end }}
+---
+

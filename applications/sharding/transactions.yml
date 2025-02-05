@@ -1,0 +1,118 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: transactions
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          # - shard: "shadow"
+          #   cluster: https://kubernetes.default.svc        
+          - shard: "01"
+            cluster: https://kubernetes.default.svc
+          - shard: "02"
+            cluster: https://kubernetes.default.svc
+          - shard: "03"
+            cluster: https://kubernetes.default.svc                                 
+  template:
+    metadata:
+      name: transactions-{{ shard }}
+    spec:
+      project: "transactions-shard-{{ shard }}"
+      source:
+        repoURL: 'http://chartmuseum.chartmuseum.svc.cluster.local:8080'
+        chart: sample
+        targetRevision: 0.1.0
+        helm:
+          releaseName: transactions-{{ shard }}
+          valuesObject:
+            app:
+              name: transactions
+              image: docker.io/fidelissauro/msc-transaction-api:latest
+              namespace: shard-{{ shard }}
+              iam: ""
+              capacity:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits: 
+                  cpu: 200m
+                  memory: 256Mi
+                autoscaling: {}
+                min: 1
+                max: 10
+              rollout:
+                strategy:
+                  canary:
+                    steps:
+                    - setWeight: 0
+                    - pause: { }
+                    - setWeight: 100
+              envs:
+                - name: DATABASE_HOST
+                  value: "db-{{ shard }}-postgresql.shard-{{ shard }}.svc.cluster.local"
+                - name: DATABASE_PORT
+                  value: "5432"
+                - name: DATABASE_USER
+                  value: "fidelissauro"
+                - name: DATABASE_PASSWORD
+                  value: "doutorequemtemdoutorado"
+                - name: DATABASE_DB
+                  value: "transactions"
+                - name: CACHE_HOST
+                  value: "cache-{{ shard }}-redis-replicas.shard-{{ shard }}.svc.cluster.local"
+                - name: CACHE_PORT
+                  value: "6379"
+                - name: VERSION
+                  value: "v2"
+              port:
+                name: http-web
+                port: 8080
+                protocol: TCP
+                targetPort: 8080
+              service:
+                type: ClusterIP
+              istio:
+                gateway: 
+                  selector: ingressgateway
+                  # HTTP, HTTP2, GRPC, GRPC-WEB, MONGO, REDIS, MYSQL, TCP
+                  protocol: HTTP 
+                  port: 80
+                host: transactions{{ shard }}.cluster.io
+                virtualService:
+                  http:
+                    enabled: true
+                    retries:
+                      attempts: 1
+                      perTryTimeout: 500ms
+                      retryOn: refused-stream
+                DestinationRule:
+                  enabled: true
+
+              prometheus:
+                scrape: "true"
+                port: 8080
+                path: /metrics
+
+              probes:
+                livenessProbe:
+                  enabled: true
+                  failureThreshold: 10
+                  periodSeconds: 10
+                  httpGet:
+                    path: /healthcheck
+                    port: 8080
+                startupProbe:
+                  enabled: true
+                  failureThreshold: 10
+                  periodSeconds: 10
+                  httpGet:
+                    path: /healthcheck
+                    port: 8080
+
+      destination:
+        server: '{{ cluster }}'
+        namespace: argocd
+      syncPolicy:
+        automated: {}

@@ -1,0 +1,36 @@
+# apiVersion: argoproj.io/v1alpha1
+# kind: ApplicationSet
+# metadata:
+#   name: argo-rollouts
+#   namespace: argocd
+# spec:
+#   generators:
+#     - list:
+#         elements:
+#           - cluster: https://kubernetes.default.svc
+#   template:
+#     metadata:
+#       name: argo-rollouts
+#     spec:
+#       project: "system"
+#       source:
+#         repoURL: "https://argoproj.github.io/argo-helm"
+#         chart: "argo-rollouts"
+#         targetRevision: "2.34.1"
+#         helm:
+#           releaseName: "argo-rollouts"
+#           valuesObject:
+#             dashboard:
+#               enabled: false
+#             controller:
+#               metrics:
+#                 enabled: true
+#             podAnnotations:
+#               prometheus.io/scrape: "true"
+#               prometheus.io/path: "/metrics"
+#               prometheus.io/port: "8090"
+#       destination:
+#         server: "{{ cluster }}"
+#         namespace: argo-rollouts
+#       syncPolicy:
+#         automated: {}

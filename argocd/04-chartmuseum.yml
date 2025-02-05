@@ -1,0 +1,49 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: chartmuseum
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - cluster: https://kubernetes.default.svc
+  template:
+    metadata:
+      name: chartmuseum
+    spec:
+      project: "system"
+      source:
+        repoURL: "https://chartmuseum.github.io/charts"
+        chart: "chartmuseum"
+        targetRevision: "3.10.3"
+        helm:
+          releaseName: "chartmuseum"
+          valuesObject:
+            serviceAccount:
+              create: true
+            env:
+              open:
+                DISABLE_API: "false"
+                STORAGE: "local"
+                DEBUG: "true"
+                DISABLE_STATEFILES: "true"
+            persistence:
+              enabled: true
+              accessMode: ReadWriteOnce
+              size: 1Gi
+              path: /storage
+              pv:
+                enabled: false
+                pvname:
+                capacity:
+                  storage: 1Gi
+                accessMode: ReadWriteOnce
+      destination:
+        server: "{{ cluster }}"
+        namespace: chartmuseum
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+        automated: {}
+
