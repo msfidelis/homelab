@@ -1,0 +1,36 @@
+kubernetesClusterDomain: cluster.local
+pvc:
+  pvc:
+    storageRequest: 64Gi
+windows:
+  ports:
+  - name: tcp-8006
+    port: 8006
+    targetPort: 0
+  - name: tcp-3389
+    port: 3389
+    targetPort: 0
+  - name: udp-3389
+    port: 3389
+    protocol: UDP
+    targetPort: 0
+  replicas: 1
+  type: NodePort
+  volumeClaims:
+    storage:
+      requests:
+        storage: 64Gi
+  windows:
+    containerSecurityContext:
+      capabilities:
+        add:
+        - NET_ADMIN
+      privileged: true
+    env:
+      cpuCores: "2"
+      diskSize: 64G
+      ramSize: 4G
+      version: "11"
+    image:
+      repository: dockurr/windows
+      tag: latest

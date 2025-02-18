@@ -1,0 +1,85 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "windows.fullname" . }}-pvc
+  labels:
+  {{- include "windows.labels" . | nindent 4 }}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.pvc.pvc.storageRequest | quote }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "windows.fullname" . }}-windows
+  labels:
+    name: windows
+  {{- include "windows.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.windows.replicas }}
+  selector:
+    matchLabels:
+      name: windows
+  serviceName: {{ include "windows.fullname" . }}-windows
+  template:
+    metadata:
+      labels:
+        name: windows
+    spec:
+      containers:
+      - env:
+        - name: VERSION
+          value: {{ quote .Values.windows.windows.env.version }}
+        - name: RAM_SIZE
+          value: {{ quote .Values.windows.windows.env.ramSize }}
+        - name: CPU_CORES
+          value: {{ quote .Values.windows.windows.env.cpuCores }}
+        - name: DISK_SIZE
+          value: {{ quote .Values.windows.windows.env.diskSize }}
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        image: {{ .Values.windows.windows.image.repository }}:{{ .Values.windows.windows.image.tag
+          | default .Chart.AppVersion }}
+        name: windows
+        ports:
+        - containerPort: 8006
+        - containerPort: 3389
+        - containerPort: 3389
+          protocol: UDP
+        resources: {}
+        securityContext: {{- toYaml .Values.windows.windows.containerSecurityContext
+          | nindent 10 }}
+        volumeMounts:
+        - mountPath: /storage
+          name: storage
+        - mountPath: /dev/kvm
+          name: dev-kvm
+        - mountPath: /dev/net/tun
+          name: dev-tun
+      terminationGracePeriodSeconds: 120
+  updateStrategy: {}
+  volumeClaimTemplates:
+  - metadata:
+      creationTimestamp: null
+      name: storage
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources: {{ .Values.windows.volumeClaims.storage | toYaml | nindent 8 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "windows.fullname" . }}-windows
+  labels:
+  {{- include "windows.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.windows.type }}
+  selector:
+    name: windows
+    {{- include "windows.selectorLabels" . | nindent 4 }}
+  ports:
+  {{- .Values.windows.ports | toYaml | nindent 2 }}

@@ -2,9 +2,10 @@
 apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
-  name: bookinfo-ratings
+  name: {{ .Values.app.name }}
+  namespace: {{ .Values.app.namespace }}
 spec:
-  host: ratings.prod.svc.cluster.local
+  host: {{ .Values.app.istio.destinationRule.host }}
   trafficPolicy:
     {{- if .Values.app.istio.destinationRule.loadBalancer.enabled }}
     loadBalancer:

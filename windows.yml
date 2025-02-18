@@ -1,0 +1,136 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: windows
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: windows-pvc
+  namespace: windows
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 64Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: windows
+  namespace: windows
+  labels:
+    name: windows
+spec:
+  containers:
+  - name: windows
+    image: dockurr/windows
+    env:
+    - name: VERSION
+      value: "10"
+    - name: RAM_SIZE
+      value: "4G"
+    - name: CPU_CORES
+      value: "2"
+    - name: DISK_SIZE
+      value: "64G"
+    - name: KVM
+      value: "N"   
+    - name: HV
+      value: "N"
+    - name: BOOT_MODE
+      value: "windows_plain" 
+    - name: CONSOLE
+      value: "Y"
+    - name: USERNAME
+      value: "bill"
+    - name: PASSWORD
+      value: "gates"   
+    ports:
+    - containerPort: 8006
+    - containerPort: 3389
+    - containerPort: 3389
+      protocol: UDP
+    securityContext:
+      capabilities:
+        add:
+        - NET_ADMIN
+      privileged: true
+    volumeMounts:
+    - mountPath: /storage
+      name: storage
+    - mountPath: /dev/kvm
+      name: dev-kvm
+    - mountPath: /dev/net/tun
+      name: dev-tun
+  terminationGracePeriodSeconds: 120
+  volumes:
+  - name: storage
+    persistentVolumeClaim:
+      claimName: windows-pvc
+  - hostPath:
+      path: /dev/kvm
+    name: dev-kvm
+  - hostPath:
+      path: /dev/net/tun
+      type: CharDevice
+    name: dev-tun
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: windows
+  namespace: windows
+spec:
+  ports:
+  - name: tcp-8006
+    port: 8006
+  - name: tcp-3389
+    port: 3389
+  - name: udp-3389
+    port: 3389
+    protocol: UDP
+  selector:
+    name: windows
+  type: NodePort
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: windows
+  namespace: windows
+spec:
+  gateways:
+  - windows
+  hosts:
+  - windows.homelab.msfidelis.com.br
+  - windows
+  - windows.windows.svc.cluster.local
+  http:
+  - retries:
+      attempts: 1
+      perTryTimeout: 500ms
+      retryOn: refused-stream
+    route:
+    - destination:
+        host: windows
+        port:
+          number: 8006
+--- 
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  annotations:
+  name: windows
+  namespace: windows
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - hosts:
+    - windows.homelab.msfidelis.com.br
+    port:
+      name: http
+      number: 80
+      protocol: HTTP
