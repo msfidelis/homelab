@@ -25,6 +25,16 @@ resource "helm_release" "istiod" {
     value = "false"
   }
 
+  set {
+    name  = "meshConfig.enableTracing"
+    value = "true"
+  }
+
+  set {
+    name  = "meshConfig.defaultConfig.tracing.zipkin.address"
+    value = "jaeger-collector.tracing.svc.cluster.local:9411"
+  }
+
   depends_on = [
     helm_release.istio_base
   ]

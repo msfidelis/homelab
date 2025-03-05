@@ -5,7 +5,7 @@ resource "helm_release" "kiali-server" {
   namespace        = "istio-system"
   create_namespace = true
 
-  version = "2.4"
+  version = "2.5"
 
   set {
     name  = "server.web_fqdn"
@@ -17,20 +17,25 @@ resource "helm_release" "kiali-server" {
     value = "anonymous"
   }
 
-  #   set {
-  #     name  = "external_services.tracing.enabled"
-  #     value = true
-  #   }
-
-  #   set {
-  #     name  = "external_services.tracing.in_cluster_url"
-  #     value = "http://jaeger-query.jaeger.svc.cluster.local:80"
-  #   }
-
+  set {
+    name  = "external_services.tracing.enabled"
+    value = true
+  }
   set {
     name  = "external_services.tracing.use_grpc"
     value = false
   }
+
+  set {
+    name  = "external_services.tracing.internal_url"
+    value = "http://jaeger-query.tracing.svc.cluster.local:16686"
+  }
+
+  set {
+    name  = "external_services.tracing.external_url"
+    value = "http://jaeger.homelab.msfidelis.com.br"
+  }
+
 
   set {
     name  = "external_services.prometheus.url"

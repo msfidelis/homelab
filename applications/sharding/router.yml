@@ -33,7 +33,7 @@ spec:
                   cpu: 200m
                   memory: 256Mi
                 autoscaling: {}
-                min: 1
+                min: 3
                 max: 10
               rollout:
                 strategy:
@@ -73,8 +73,8 @@ spec:
                   http:
                     enabled: true
                     retries:
-                      attempts: 1
-                      perTryTimeout: 500ms
+                      attempts: 2
+                      perTryTimeout: 3s
                       retryOn: refused-stream
                 DestinationRule:
                   enabled: true
