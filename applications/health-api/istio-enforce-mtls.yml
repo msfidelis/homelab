@@ -51,7 +51,19 @@ spec:
         - cluster.local/ns/prometheus/sa/prometheus-kube-prometheus-prometheus
   - to:
     - operation:
-        paths: ["/healthcheck"]  
+        paths: ["/healthz"]  
+---
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: enforce-mtls-health-api
+  namespace: nutrition
+spec:
+  selector:
+    matchLabels:
+      app: health-api
+  mtls:
+    mode: STRICT  
 ---
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
@@ -71,7 +83,7 @@ spec:
         - cluster.local/ns/prometheus/sa/prometheus-kube-prometheus-prometheus
   - to:
     - operation:
-        paths: ["/healthcheck"]  
+        paths: ["/healthz"]  
 ---
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
@@ -91,7 +103,7 @@ spec:
         - cluster.local/ns/prometheus/sa/prometheus-kube-prometheus-prometheus
   - to:
     - operation:
-        paths: ["/healthcheck"]  
+        paths: ["/healthz"]  
 ---
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
@@ -111,7 +123,7 @@ spec:
         - cluster.local/ns/prometheus/sa/prometheus-kube-prometheus-prometheus
   - to:
     - operation:
-        paths: ["/healthcheck"]  
+        paths: ["/healthz"]  
 ---
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
@@ -131,7 +143,7 @@ spec:
         - cluster.local/ns/prometheus/sa/prometheus-kube-prometheus-prometheus
   - to:
     - operation:
-        paths: ["/healthcheck"]  
+        paths: ["/healthz"]  
 ---
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
@@ -151,8 +163,8 @@ spec:
         - cluster.local/ns/prometheus/sa/prometheus-kube-prometheus-prometheus
   - to:
     - operation:
-        paths: ["/healthcheck"]  
----
+        paths: ["/healthz"]  
+# ---
 # apiVersion: security.istio.io/v1beta1
 # kind: PeerAuthentication
 # metadata:
