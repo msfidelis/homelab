@@ -1,20 +1,17 @@
 prometheus:
   prometheusSpec:
-    # podMonitorNamespaceSelector:
-    #   any: true
+    podMonitorNamespaceSelector: {}
     podMonitorSelector: {}
     podMonitorSelectorNilUsesHelmValues: false
-    # ruleNamespaceSelector:
-    #   any: true
+    ruleNamespaceSelector: {}
     ruleSelector: {}
     ruleSelectorNilUsesHelmValues: false
-    # serviceMonitorNamespaceSelector:
-    #   any: true
+    serviceMonitorNamespaceSelector: {}
     serviceMonitorSelector: {}
     serviceMonitorSelectorNilUsesHelmValues: false
 
 kubeStateMetrics:
-  enabled: false
+  enabled: true
 
 prometheusOperator:
   enabled: true
@@ -23,3 +20,11 @@ prometheusOperator:
   prometheusInstanceNamespaces: ''
   alertmanagerInstanceNamespaces: ''
   thanosRulerInstanceNamespaces: ''
+
+grafana:
+  persistence:
+    enabled: true
+    storageClassName: "local-path"
+    accessModes:
+      - ReadWriteOnce
+    size: 1Gi

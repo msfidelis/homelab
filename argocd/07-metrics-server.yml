@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: metrics-server
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - cluster: https://kubernetes.default.svc
+  template:
+    metadata:
+      name: metrics-server
+    spec:
+      project: "system"
+      source:
+        repoURL: "https://charts.bitnami.com/bitnami"
+        chart: "metrics-server"
+        targetRevision: "7.2.16"
+        helm:
+          releaseName: "metrics-server"
+          valuesObject:
+            apiService:
+              create: true
+            serviceMonitor:
+              enabled: true
+      destination:
+        server: "{{ cluster }}"
+        namespace: kube-system
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+        automated: {}

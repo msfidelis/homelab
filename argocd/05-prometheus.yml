@@ -1,62 +1,59 @@
-apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
-metadata:
-  name: prometheus
-  namespace: argocd
-spec:
-  generators:
-    - list:
-        elements:
-          - cluster: https://kubernetes.default.svc
-  template:
-    metadata:
-      name: prometheus
-    spec:
-      project: "system"
-      source:
-        repoURL: "https://prometheus-community.github.io/helm-charts"
-        chart: "kube-prometheus-stack"
-        targetRevision: "45.8.0"
-        helm:
-          releaseName: "prometheus"
-          valuesObject:
-            prometheus:
-              prometheusSpec:
-                # podMonitorNamespaceSelector:
-                #   any: true
-                podMonitorSelector: {}
-                podMonitorSelectorNilUsesHelmValues: false
-                # ruleNamespaceSelector:
-                #   any: true
-                ruleSelector: {}
-                ruleSelectorNilUsesHelmValues: false
-                # serviceMonitorNamespaceSelector:
-                #   any: true
-                serviceMonitorSelector: {}
-                serviceMonitorSelectorNilUsesHelmValues: false
+# apiVersion: argoproj.io/v1alpha1
+# kind: ApplicationSet
+# metadata:
+#   name: prometheus
+#   namespace: argocd
+# spec:
+#   generators:
+#     - list:
+#         elements:
+#           - cluster: https://kubernetes.default.svc
+#   template:
+#     metadata:
+#       name: prometheus
+#     spec:
+#       project: "system"
+#       source:
+#         repoURL: "https://prometheus-community.github.io/helm-charts"
+#         chart: "kube-prometheus-stack"
+#         targetRevision: "45.8.0"
+#         helm:
+#           releaseName: "prometheus"
+#           valuesObject:
+#             prometheus:
+#               prometheusSpec:
+#                 podMonitorNamespaceSelector: {}
+#                 podMonitorSelector: {}
+#                 podMonitorSelectorNilUsesHelmValues: false
+#                 ruleNamespaceSelector: {}
+#                 ruleSelector: {}
+#                 ruleSelectorNilUsesHelmValues: false
+#                 serviceMonitorNamespaceSelector: {}
+#                 serviceMonitorSelector: {}
+#                 serviceMonitorSelectorNilUsesHelmValues: false
 
-            kubeStateMetrics:
-              enabled: false
+#             kubeStateMetrics:
+#               enabled: true
 
-            prometheusOperator:
-              enabled: true
-              namespaces: ''
-              denyNamespaces: ''
-              prometheusInstanceNamespaces: ''
-              alertmanagerInstanceNamespaces: ''
-              thanosRulerInstanceNamespaces: ''
+#             prometheusOperator:
+#               enabled: true
+#               namespaces: ''
+#               denyNamespaces: ''
+#               prometheusInstanceNamespaces: ''
+#               alertmanagerInstanceNamespaces: ''
+#               thanosRulerInstanceNamespaces: ''
 
-            grafana:
-              persistence:
-                enabled: true
-                storageClassName: "local-path"
-                accessModes:
-                  - ReadWriteOnce
-                size: 1Gi
+#             grafana:
+#               persistence:
+#                 enabled: true
+#                 storageClassName: "local-path"
+#                 accessModes:
+#                   - ReadWriteOnce
+#                 size: 1Gi
                 
-      destination:
-        server: "{{ cluster }}"
-        namespace: prometheus
-      syncPolicy:
-        syncOptions:
-          - CreateNamespace=true
+#       destination:
+#         server: "{{ cluster }}"
+#         namespace: prometheus
+#       syncPolicy:
+#         syncOptions:
+#           - CreateNamespace=true

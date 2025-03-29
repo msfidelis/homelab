@@ -1,32 +1,32 @@
-apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
-metadata:
-  name: ollama
-  namespace: argocd
-spec:
-  generators:
-    - list:
-        elements:
-          - cluster: https://kubernetes.default.svc
-  template:
-    metadata:
-      name: ollama
-    spec:
-      project: "system"
-      source:
-        repoURL: "https://otwld.github.io/ollama-helm/"
-        chart: "ollama"
-        targetRevision: "1.4.0"
-        helm:
-          releaseName: "ollama"
-          valuesObject:
-            ollama:
-              models:
-                pull:
-                  - deepseek-r1
-      destination:
-        server: "{{ cluster }}"
-        namespace: ollama
-      syncPolicy:
-        syncOptions:
-          - CreateNamespace=true
+# apiVersion: argoproj.io/v1alpha1
+# kind: ApplicationSet
+# metadata:
+#   name: ollama
+#   namespace: argocd
+# spec:
+#   generators:
+#     - list:
+#         elements:
+#           - cluster: https://kubernetes.default.svc
+#   template:
+#     metadata:
+#       name: ollama
+#     spec:
+#       project: "system"
+#       source:
+#         repoURL: "https://otwld.github.io/ollama-helm/"
+#         chart: "ollama"
+#         targetRevision: "1.4.0"
+#         helm:
+#           releaseName: "ollama"
+#           valuesObject:
+#             ollama:
+#               models:
+#                 pull:
+#                   - deepseek-r1
+#       destination:
+#         server: "{{ cluster }}"
+#         namespace: ollama
+#       syncPolicy:
+#         syncOptions:
+#           - CreateNamespace=true
