@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: keda
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - cluster: https://kubernetes.default.svc
+  template:
+    metadata:
+      name: keda
+    spec:
+      project: "system"
+      source:
+        repoURL: "https://kedacore.github.io/charts"
+        chart: "keda"
+        targetRevision: "2.16.0"
+        helm:
+          releaseName: "keda"
+          valuesObject:
+            foo: bar
+      destination:
+        server: "{{ cluster }}"
+        namespace: keda
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true

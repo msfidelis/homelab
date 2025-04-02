@@ -47,7 +47,7 @@ spec:
                   canary:
                     steps:
                     - setWeight: 0
-                    - pause: { }
+                    - pause: { duration: 30s }
                     - setWeight: 100
               envs:
                 - name: DATABASE_HOST
@@ -65,7 +65,7 @@ spec:
                 - name: CACHE_PORT
                   value: "6379"
                 - name: VERSION
-                  value: "v2"
+                  value: "v4"
               port:
                 name: http-web
                 port: 8080
@@ -115,4 +115,4 @@ spec:
         server: '{{ cluster }}'
         namespace: argocd
       syncPolicy:
-        automated: {}
+        # automated: {}

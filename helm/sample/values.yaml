@@ -2,6 +2,7 @@ app:
   name: nginx
   image: nginx:latest
   namespace: test
+  createNamespace: true
   iam: ""
   capacity:
     requests: 
@@ -108,11 +109,6 @@ app:
         interval: 300ms
         baseEjectionTime: 60s
         maxEjectionPercent: 100
-
-  prometheus:
-    scrape: "true"
-    port: 80
-    path: /metrics
 
   probes:
     livenessProbe:

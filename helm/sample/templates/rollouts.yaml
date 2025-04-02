@@ -26,6 +26,23 @@ spec:
         version: "{{ .Values.app.version | default .Release.Revision }}"
     spec:
       serviceAccountName: {{ .Values.app.name }}
+
+      topologySpreadConstraints:
+
+        - maxSkew: 1
+          topologyKey: "topology.kubernetes.io/zone"
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: {{ .Values.app.name }}
+
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: {{ .Values.app.name }}
+
       containers:
       - name: {{ .Values.app.name }}
         ports:
