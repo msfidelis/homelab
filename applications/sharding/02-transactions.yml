@@ -40,7 +40,7 @@ spec:
                   cpu: 200m
                   memory: 256Mi
                 autoscaling: {}
-                min: 1
+                min: 2
                 max: 10
               rollout:
                 strategy:
@@ -65,7 +65,7 @@ spec:
                 - name: CACHE_PORT
                   value: "6379"
                 - name: VERSION
-                  value: "v4"
+                  value: "v1"
               port:
                 name: http-web
                 port: 8080

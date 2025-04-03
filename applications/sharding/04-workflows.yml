@@ -1,90 +1,130 @@
+---
 apiVersion: argoproj.io/v1alpha1
-kind: Workflow
+kind: EventSource
 metadata:
-  name: progressive-rollout
-  namespace: argo-workflows
-  labels:
-    reRun: "1"
+  name: transactions-watcher
+  namespace: argo-events
 spec:
-  entrypoint: progressive
-  serviceAccountName: argo-workflow
-  templates:
-  - name: progressive
-    steps:
-    - - name: transactions-shard-01-sync
-        template: sync-shard
-        arguments:
-          parameters:
-          - name: shard
-            value: "transactions-shard-01"
-          - name: app
-            value: "transactions-01"
+  resource:
+    applicationset-events:
+      eventTypes:
+        - UPDATE
+      group: argoproj.io
+      version: v1alpha1
+      resource: applicationsets
+      namespace: argocd
+      filters:
+        data:
+          - path: body.metadata.name
+            type: string
+            value:
+              - "transactions"
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: transactions-sensor
+  namespace: argo-events
+spec:
+  dependencies:
+    - name: applicationset-dep
+      eventSourceName: transactions-watcher
+      eventName: applicationset-events
+  triggers:
+    - template:
+        name: trigger-argo-workflow
+        argoWorkflow:
+          group: argoproj.io
+          version: v1alpha1
+          resource: workflows
+          operation: submit
+          source:
+            resource:
+              apiVersion: argoproj.io/v1alpha1
+              kind: Workflow
+              metadata:
+                generateName: transactions-deploy-
+                namespace: argo-workflows
+              spec:
+                entrypoint: progressive
+                serviceAccountName: argo-workflow
+                templates:
+                - name: progressive
+                  steps:
+                  - - name: transactions-shard-01-sync
+                      template: sync-shard
+                      arguments:
+                        parameters:
+                        - name: shard
+                          value: "transactions-shard-01"
+                        - name: app
+                          value: "transactions-01"
 
-    - - name: transactions-shard-01-wait
-        template: wait-shard
-        arguments:
-          parameters:
-          - name: shard
-            value: "transactions-shard-01"
-          - name: app
-            value: "transactions-01"
+                  - - name: transactions-shard-01-wait
+                      template: wait-shard
+                      arguments:
+                        parameters:
+                        - name: shard
+                          value: "transactions-shard-01"
+                        - name: app
+                          value: "transactions-01"
 
-    - - name: transactions-shard-02-sync
-        template: sync-shard
-        arguments:
-          parameters:
-          - name: shard
-            value: "transactions-shard-02"
-          - name: app
-            value: "transactions-02"
+                  - - name: transactions-shard-02-sync
+                      template: sync-shard
+                      arguments:
+                        parameters:
+                        - name: shard
+                          value: "transactions-shard-02"
+                        - name: app
+                          value: "transactions-02"
 
-    - - name: transactions-shard-02-wait
-        template: wait-shard
-        arguments:
-          parameters:
-          - name: shard
-            value: "transactions-shard-02"
-          - name: app
-            value: "transactions-02"
+                  - - name: transactions-shard-02-wait
+                      template: wait-shard
+                      arguments:
+                        parameters:
+                        - name: shard
+                          value: "transactions-shard-02"
+                        - name: app
+                          value: "transactions-02"
 
-    - - name: transactions-shard-03-sync
-        template: sync-shard
-        arguments:
-          parameters:
-          - name: shard
-            value: "transactions-shard-03"
-          - name: app
-            value: "transactions-03"
+                  - - name: transactions-shard-03-sync
+                      template: sync-shard
+                      arguments:
+                        parameters:
+                        - name: shard
+                          value: "transactions-shard-03"
+                        - name: app
+                          value: "transactions-03"
 
-    - - name: transactions-shard-03-wait
-        template: wait-shard
-        arguments:
-          parameters:
-          - name: shard
-            value: "transactions-shard-03"
-          - name: app
-            value: "transactions-03"
+                  - - name: transactions-shard-03-wait
+                      template: wait-shard
+                      arguments:
+                        parameters:
+                        - name: shard
+                          value: "transactions-shard-03"
+                        - name: app
+                          value: "transactions-03"
 
-  - name: sync-shard
-    inputs:
-      parameters:
-      - name: shard
-      - name: app
-    script:
-      image: argoproj/argocd:v2.6.15
-      command: [sh]
-      source: |
-        argocd login argocd-server.argocd.svc.cluster.local --username admin --password 6B3sDK-T8b0uDgM9 --grpc-web --plaintext
-        argocd app sync {{inputs.parameters.app}}
+                - name: sync-shard
+                  inputs:
+                    parameters:
+                    - name: shard
+                    - name: app
+                  script:
+                    image: argoproj/argocd:v2.6.15
+                    command: [sh]
+                    source: |
+                      argocd login argocd-server.argocd.svc.cluster.local --username admin --password 6B3sDK-T8b0uDgM9 --grpc-web --plaintext
+                      argocd app sync {{inputs.parameters.app}}
 
-  - name: wait-shard
-    inputs:
-      parameters:
-      - name: shard
-      - name: app
-    script:
-      image: argoproj/argocd:v2.6.15
-      command: [sh]
-      source: |
-        argocd login argocd-server.argocd.svc.cluster.local --username admin --password 6B3sDK-T8b0uDgM9 --grpc-web --plaintext
-        argocd app wait {{inputs.parameters.app}} --health --timeout 6000
+                - name: wait-shard
+                  inputs:
+                    parameters:
+                    - name: shard
+                    - name: app
+                  script:
+                    image: argoproj/argocd:v2.6.15
+                    command: [sh]
+                    source: |
+                      argocd login argocd-server.argocd.svc.cluster.local --username admin --password 6B3sDK-T8b0uDgM9 --grpc-web --plaintext
+                      argocd app wait {{inputs.parameters.app}} --health --timeout 6000

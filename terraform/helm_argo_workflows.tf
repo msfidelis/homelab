@@ -10,6 +10,11 @@ resource "helm_release" "argo_workflows" {
   create_namespace = true
 
   set {
+    name = "controller.namespaceParallelism"
+    value = "1"
+  }
+
+  set {
     name = "workflow.serviceAccount.create"
     value = true
   }
