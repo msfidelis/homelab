@@ -11,7 +11,7 @@ resource "helm_release" "argo_workflows" {
 
   set {
     name = "controller.namespaceParallelism"
-    value = "1"
+    value = "10"
   }
 
   set {

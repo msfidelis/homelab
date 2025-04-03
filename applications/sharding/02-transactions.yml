@@ -65,7 +65,7 @@ spec:
                 - name: CACHE_PORT
                   value: "6379"
                 - name: VERSION
-                  value: "v1"
+                  value: "v5"
               port:
                 name: http-web
                 port: 8080
