@@ -1,0 +1,42 @@
+serviceAccount:
+  create: true
+  name: fluent-bit
+
+config:
+  service: |
+    [SERVICE]
+        HTTP_Server  On
+        HTTP_Listen  0.0.0.0
+        HTTP_PORT    2020
+        Flush        1
+        Log_Level    info
+        Parsers_File parsers.conf
+
+  inputs: |
+    [INPUT]
+        Name              tail
+        Path              /var/log/containers/*.log
+        Parser            cri
+        Tag               kube.*
+        Mem_Buf_Limit     50MB
+        Skip_Long_Lines   On
+        Refresh_Interval  10
+
+  filters: |
+    [FILTER]
+        Name                kubernetes
+        Match               kube.*
+        Kube_URL            https://kubernetes.default.svc:443
+        Merge_Log           On
+        K8S-Logging.Parser  On
+        K8S-Logging.Exclude Off
+
+  outputs: |
+    [OUTPUT]
+        Name              loki
+        Match             kube.*
+        Host              loki-gateway.loki.svc.cluster.local
+        Port              80
+        tls               off
+        tls.verify        off        
+        Labels            cluster=homelab,job=fluentbit,namespace=$kubernetes['namespace_name'],pod=$kubernetes['pod_name'],container=$kubernetes['container_name']

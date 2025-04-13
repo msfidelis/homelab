@@ -43,6 +43,8 @@ resource "helm_release" "argocd" {
     value = "https://github.com/argoproj-labs/rollout-extension/releases/download/v0.3.6/extension.tar"
   }
 
+  depends_on = [ helm_release.istio_ingress ]
+
 }
 
 resource "kubectl_manifest" "argo_gateway" {
@@ -67,8 +69,6 @@ YAML
 
   depends_on = [
     helm_release.argocd,
-    # helm_release.istio_base,
-    # helm_release.istiod
   ]
 
 }
@@ -100,8 +100,6 @@ YAML
 
   depends_on = [
     helm_release.argocd,
-    # helm_release.istio_base,
-    # helm_release.istiod
   ]
 
 }

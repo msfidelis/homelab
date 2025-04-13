@@ -1,175 +1,175 @@
----
-apiVersion: security.istio.io/v1beta1
-kind: AuthorizationPolicy
-metadata:
-  name: allow-ingress-gateway
-  namespace: istio-system
-spec:
-  selector:
-    matchLabels:
-      istio: ingressgateway  
-  rules:
-  - from:
-    - source:
-        notRequestPrincipals: ["*"] 
----
-apiVersion: security.istio.io/v1beta1
-kind: AuthorizationPolicy
-metadata:
-  name: allow-health-api
-  namespace: nutrition
-spec:
-  selector:
-    matchLabels:
-      app: health-api
-  action: ALLOW
-  rules:
-  - from:
-    - source:
-        principals: 
-        - cluster.local/ns/istio-system/sa/istio-ingressgateway
-        - cluster.local/ns/prometheus/sa/prometheus-kube-prometheus-prometheus
-  - to:
-    - operation:
-        paths: ["/healthcheck"]  
----
-apiVersion: security.istio.io/v1beta1
-kind: AuthorizationPolicy
-metadata:
-  name: allow-imc-grpc
-  namespace: nutrition
-spec:
-  selector:
-    matchLabels:
-      app: imc-grpc 
-  action: ALLOW
-  rules:
-  - from:
-    - source:
-        principals: 
-        - cluster.local/ns/nutrition/sa/health-api
-        - cluster.local/ns/prometheus/sa/prometheus-kube-prometheus-prometheus
-  - to:
-    - operation:
-        paths: ["/healthz"]  
----
-apiVersion: security.istio.io/v1beta1
-kind: PeerAuthentication
-metadata:
-  name: enforce-mtls-health-api
-  namespace: nutrition
-spec:
-  selector:
-    matchLabels:
-      app: health-api
-  mtls:
-    mode: STRICT  
----
-apiVersion: security.istio.io/v1beta1
-kind: AuthorizationPolicy
-metadata:
-  name: allow-bmr-grpc
-  namespace: nutrition
-spec:
-  selector:
-    matchLabels:
-      app: bmr-grpc 
-  action: ALLOW
-  rules:
-  - from:
-    - source:
-        principals: 
-        - cluster.local/ns/nutrition/sa/health-api
-        - cluster.local/ns/prometheus/sa/prometheus-kube-prometheus-prometheus
-  - to:
-    - operation:
-        paths: ["/healthz"]  
----
-apiVersion: security.istio.io/v1beta1
-kind: AuthorizationPolicy
-metadata:
-  name: allow-recommendations-grpc
-  namespace: nutrition
-spec:
-  selector:
-    matchLabels:
-      app: recommendations-grpc 
-  action: ALLOW
-  rules:
-  - from:
-    - source:
-        principals: 
-        - cluster.local/ns/nutrition/sa/health-api
-        - cluster.local/ns/prometheus/sa/prometheus-kube-prometheus-prometheus
-  - to:
-    - operation:
-        paths: ["/healthz"]  
----
-apiVersion: security.istio.io/v1beta1
-kind: AuthorizationPolicy
-metadata:
-  name: allow-water-grpc
-  namespace: nutrition
-spec:
-  selector:
-    matchLabels:
-      app: water-grpc 
-  action: ALLOW
-  rules:
-  - from:
-    - source:
-        principals: 
-        - cluster.local/ns/nutrition/sa/recommendations-grpc
-        - cluster.local/ns/prometheus/sa/prometheus-kube-prometheus-prometheus
-  - to:
-    - operation:
-        paths: ["/healthz"]  
----
-apiVersion: security.istio.io/v1beta1
-kind: AuthorizationPolicy
-metadata:
-  name: allow-calories-grpc
-  namespace: nutrition
-spec:
-  selector:
-    matchLabels:
-      app: calories-grpc 
-  action: ALLOW
-  rules:
-  - from:
-    - source:
-        principals: 
-        - cluster.local/ns/nutrition/sa/recommendations-grpc
-        - cluster.local/ns/prometheus/sa/prometheus-kube-prometheus-prometheus
-  - to:
-    - operation:
-        paths: ["/healthz"]  
----
-apiVersion: security.istio.io/v1beta1
-kind: AuthorizationPolicy
-metadata:
-  name: allow-proteins-grpc
-  namespace: nutrition
-spec:
-  selector:
-    matchLabels:
-      app: proteins-grpc 
-  action: ALLOW
-  rules:
-  - from:
-    - source:
-        principals: 
-        - cluster.local/ns/nutrition/sa/recommendations-grpc
-        - cluster.local/ns/prometheus/sa/prometheus-kube-prometheus-prometheus
-  - to:
-    - operation:
-        paths: ["/healthz"]  
+# ---
+# apiVersion: security.istio.io/v1beta1
+# kind: AuthorizationPolicy
+# metadata:
+#   name: allow-ingress-gateway
+#   namespace: istio-system
+# spec:
+#   selector:
+#     matchLabels:
+#       istio: ingressgateway  
+#   rules:
+#   - from:
+#     - source:
+#         notRequestPrincipals: ["*"] 
+# ---
+# apiVersion: security.istio.io/v1beta1
+# kind: AuthorizationPolicy
+# metadata:
+#   name: allow-health-api
+#   namespace: nutrition
+# spec:
+#   selector:
+#     matchLabels:
+#       app: health-api
+#   action: ALLOW
+#   rules:
+#   - from:
+#     - source:
+#         principals: 
+#         - cluster.local/ns/istio-system/sa/istio-ingressgateway
+#         - cluster.local/ns/prometheus/sa/prometheus-kube-prometheus-prometheus
+#   - to:
+#     - operation:
+#         paths: ["/healthcheck"]  
+# ---
+# apiVersion: security.istio.io/v1beta1
+# kind: AuthorizationPolicy
+# metadata:
+#   name: allow-imc-grpc
+#   namespace: nutrition
+# spec:
+#   selector:
+#     matchLabels:
+#       app: imc-grpc 
+#   action: ALLOW
+#   rules:
+#   - from:
+#     - source:
+#         principals: 
+#         - cluster.local/ns/nutrition/sa/health-api
+#         - cluster.local/ns/prometheus/sa/prometheus-kube-prometheus-prometheus
+#   - to:
+#     - operation:
+#         paths: ["/healthz"]  
 # ---
 # apiVersion: security.istio.io/v1beta1
 # kind: PeerAuthentication
 # metadata:
-#   name: health-enforce-mtls
+#   name: enforce-mtls-health-api
 #   namespace: nutrition
 # spec:
+#   selector:
+#     matchLabels:
+#       app: health-api
 #   mtls:
-#     mode: STRICT
+#     mode: STRICT  
+# ---
+# apiVersion: security.istio.io/v1beta1
+# kind: AuthorizationPolicy
+# metadata:
+#   name: allow-bmr-grpc
+#   namespace: nutrition
+# spec:
+#   selector:
+#     matchLabels:
+#       app: bmr-grpc 
+#   action: ALLOW
+#   rules:
+#   - from:
+#     - source:
+#         principals: 
+#         - cluster.local/ns/nutrition/sa/health-api
+#         - cluster.local/ns/prometheus/sa/prometheus-kube-prometheus-prometheus
+#   - to:
+#     - operation:
+#         paths: ["/healthz"]  
+# ---
+# apiVersion: security.istio.io/v1beta1
+# kind: AuthorizationPolicy
+# metadata:
+#   name: allow-recommendations-grpc
+#   namespace: nutrition
+# spec:
+#   selector:
+#     matchLabels:
+#       app: recommendations-grpc 
+#   action: ALLOW
+#   rules:
+#   - from:
+#     - source:
+#         principals: 
+#         - cluster.local/ns/nutrition/sa/health-api
+#         - cluster.local/ns/prometheus/sa/prometheus-kube-prometheus-prometheus
+#   - to:
+#     - operation:
+#         paths: ["/healthz"]  
+# ---
+# apiVersion: security.istio.io/v1beta1
+# kind: AuthorizationPolicy
+# metadata:
+#   name: allow-water-grpc
+#   namespace: nutrition
+# spec:
+#   selector:
+#     matchLabels:
+#       app: water-grpc 
+#   action: ALLOW
+#   rules:
+#   - from:
+#     - source:
+#         principals: 
+#         - cluster.local/ns/nutrition/sa/recommendations-grpc
+#         - cluster.local/ns/prometheus/sa/prometheus-kube-prometheus-prometheus
+#   - to:
+#     - operation:
+#         paths: ["/healthz"]  
+# ---
+# apiVersion: security.istio.io/v1beta1
+# kind: AuthorizationPolicy
+# metadata:
+#   name: allow-calories-grpc
+#   namespace: nutrition
+# spec:
+#   selector:
+#     matchLabels:
+#       app: calories-grpc 
+#   action: ALLOW
+#   rules:
+#   - from:
+#     - source:
+#         principals: 
+#         - cluster.local/ns/nutrition/sa/recommendations-grpc
+#         - cluster.local/ns/prometheus/sa/prometheus-kube-prometheus-prometheus
+#   - to:
+#     - operation:
+#         paths: ["/healthz"]  
+# ---
+# apiVersion: security.istio.io/v1beta1
+# kind: AuthorizationPolicy
+# metadata:
+#   name: allow-proteins-grpc
+#   namespace: nutrition
+# spec:
+#   selector:
+#     matchLabels:
+#       app: proteins-grpc 
+#   action: ALLOW
+#   rules:
+#   - from:
+#     - source:
+#         principals: 
+#         - cluster.local/ns/nutrition/sa/recommendations-grpc
+#         - cluster.local/ns/prometheus/sa/prometheus-kube-prometheus-prometheus
+#   - to:
+#     - operation:
+#         paths: ["/healthz"]  
+# # ---
+# # apiVersion: security.istio.io/v1beta1
+# # kind: PeerAuthentication
+# # metadata:
+# #   name: health-enforce-mtls
+# #   namespace: nutrition
+# # spec:
+# #   mtls:
+# #     mode: STRICT

@@ -1,0 +1,23 @@
+persistence:
+  enabled: true
+  size: 1Gi
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090
+        isDefault: true
+        jsonData:
+          timeInterval: "15s"
+
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki-gateway.loki.svc.cluster.local
+        isDefault: false
+        jsonData:
+          maxLines: 1000

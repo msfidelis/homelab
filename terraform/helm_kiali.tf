@@ -77,7 +77,7 @@ resource "helm_release" "kiali-server" {
   set {
     name  = "external_services.grafana.dashboards[1].variables.service"
     value = "var-service"
-  }  
+  }
 
   set {
     name  = "external_services.grafana.dashboards[2].name"
@@ -88,11 +88,11 @@ resource "helm_release" "kiali-server" {
     name  = "external_services.grafana.dashboards[2].variables.namespace"
     value = "var-namespace"
   }
-  
+
   set {
     name  = "external_services.grafana.dashboards[2].variables.workload"
     value = "var-workload"
-  }  
+  }
 
   set {
     name  = "external_services.grafana.dashboards[3].name"
