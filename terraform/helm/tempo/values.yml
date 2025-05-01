@@ -4,8 +4,23 @@ gateway:
 queryFrontend:
   query:
     enabled: false
+
 distributor:
   enabled: true
+
+
+metricsGenerator:
+  enabled: true
+  registry:
+    external_labels:
+      source: tempo
+  config: 
+    storage:
+      remote_write: 
+      - url: "http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090/api/v1/write"
+        send_exemplars: true
+global_overrides:
+  metrics_generator_processors: [service-graphs, span-metrics]
 
 traces:
   otlp:

@@ -1,5 +1,10 @@
 prometheus:
   prometheusSpec:
+
+    enableRemoteWriteReceiver: true
+    enableFeatures:
+    - remote-write-receiver
+
     podMonitorNamespaceSelector: {}
     podMonitorSelector: {}
     podMonitorSelectorNilUsesHelmValues: false

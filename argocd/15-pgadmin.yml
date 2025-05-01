@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: pgadmin
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - cluster: https://kubernetes.default.svc
+  template:
+    metadata:
+      name: pgadmin
+    spec:
+      project: "system"
+      source:
+        repoURL: "https://helm.runix.net"
+        chart: "pgadmin4"
+        targetRevision: "1.4.0"
+        helm:
+          releaseName: "pgadmin"
+          valuesObject:
+            env:
+              email: msfidelis01@gmail.com
+              password: SuperSecret
+      destination:
+        server: "{{ cluster }}"
+        namespace: pgadmin
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+        automated: {}
+

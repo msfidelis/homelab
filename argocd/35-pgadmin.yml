@@ -1,8 +1,8 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
 metadata:
-  name: grafana
-  namespace: prometheus
+  name: pgadmin-gateway
+  namespace: pgadmin
 spec:
   selector:
     istio: ingressgateway 
@@ -12,25 +12,24 @@ spec:
       name: http
       protocol: HTTP
     hosts:
-    - grafana.homelab.msfidelis.com.br
+    - pgadmin.homelab.msfidelis.com.br
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  name: grafana
-  namespace: prometheus
+  name: pgadmin
+  namespace: pgadmin
 spec:
   hosts:
-  - grafana.homelab.msfidelis.com.br
+  - pgadmin.homelab.msfidelis.com.br
   gateways:
-  - grafana
+  - pgadmin-gateway
   http:
   - match:
     - uri:
         prefix: /
     route:
     - destination:
-        host: prometheus-grafana
+        host: pgadmin-pgadmin4
         port:
           number: 80
----

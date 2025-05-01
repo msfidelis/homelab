@@ -38,5 +38,6 @@ config:
         Host              loki-gateway.loki.svc.cluster.local
         Port              80
         tls               off
-        tls.verify        off        
+        tls.verify        off
+        line_format       json
         Labels            cluster=homelab,job=fluentbit,namespace=$kubernetes['namespace_name'],pod=$kubernetes['pod_name'],container=$kubernetes['container_name']
