@@ -1,16 +1,16 @@
-resource "helm_release" "loki" {
-  name       = "loki"
-  chart      = "loki"
-  repository = "https://grafana.github.io/helm-charts"
-  namespace  = "loki"
+# resource "helm_release" "loki" {
+#   name       = "loki"
+#   chart      = "loki"
+#   repository = "https://grafana.github.io/helm-charts"
+#   namespace  = "loki"
 
-  create_namespace = true
+#   create_namespace = true
 
-  values = [
-    "${file("./helm/loki/values.yml")}"
-  ]
+#   values = [
+#     "${file("./helm/loki/values.yml")}"
+#   ]
 
 
-  depends_on = [
-  ]
-}
+#   depends_on = [
+#   ]
+# }

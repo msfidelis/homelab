@@ -1,0 +1,72 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: tempo
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - cluster: https://kubernetes.default.svc
+  template:
+    metadata:
+      name: tempo
+    spec:
+      project: "system"
+      source:
+        repoURL: 'https://grafana.github.io/helm-charts'
+        chart: tempo-distributed
+        targetRevision: 1.38.3
+        helm:
+          releaseName: tempo
+          valuesObject:
+                    
+            gateway:
+              enabled: true
+
+            queryFrontend:
+              query:
+                enabled: false
+
+            distributor:
+              enabled: true
+
+            metricsGenerator:
+              enabled: true
+              registry:
+                external_labels:
+                  source: tempo
+              config: 
+                storage:
+                  remote_write: 
+                  - url: "http://prometheus-server.prometheus.svc.cluster.local:80/api/v1/write"
+                    send_exemplars: true
+                    
+            global_overrides:
+              metrics_generator_processors: [service-graphs, span-metrics]
+
+            global_overrides:
+              defaults:
+                metrics_generator:
+                  processors: [service-graphs, span-metrics, local-block]
+
+            overrides:
+              defaults:
+                metrics_generator:
+                  processors: [service-graphs, span-metrics, local-blocks]
+
+            traces:
+              otlp:
+                http:
+                  enabled: true
+                grpc:
+                  enabled: true
+
+
+      destination:
+        server: '{{ cluster }}'
+        namespace: tempo
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+        automated: {}

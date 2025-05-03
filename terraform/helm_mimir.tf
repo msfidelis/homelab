@@ -1,20 +1,20 @@
-resource "helm_release" "mimir" {
-  name       = "mimir"
-  chart      = "mimir-distributed"
-  repository = "https://grafana.github.io/helm-charts"
-  namespace  = "mimir"
+# resource "helm_release" "mimir" {
+#   name       = "mimir"
+#   chart      = "mimir-distributed"
+#   repository = "https://grafana.github.io/helm-charts"
+#   namespace  = "mimir"
 
-  create_namespace = true
+#   create_namespace = true
 
-  values = [
-    "${file("./helm/mimir/values.yml")}"
-  ]
+#   values = [
+#     "${file("./helm/mimir/values.yml")}"
+#   ]
 
 
-  depends_on = [
+#   depends_on = [
 
-  ]
-}
+#   ]
+# }
 
 # resource "kubectl_manifest" "grafana_gateway" {
 

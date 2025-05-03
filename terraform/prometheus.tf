@@ -1,21 +1,21 @@
-resource "helm_release" "prometheus" {
+# resource "helm_release" "prometheus" {
 
-  name             = "prometheus"
-  chart            = "kube-prometheus-stack"
-  repository       = "https://prometheus-community.github.io/helm-charts"
-  namespace        = "prometheus"
-  create_namespace = true
+#   name             = "prometheus"
+#   chart            = "kube-prometheus-stack"
+#   repository       = "https://prometheus-community.github.io/helm-charts"
+#   namespace        = "prometheus"
+#   create_namespace = true
 
-  version = "45.8.0"
+#   version = "45.8.0"
 
-  values = [
-    "${file("./helm/prometheus/values.yml")}"
-  ]
+#   values = [
+#     "${file("./helm/prometheus/values.yml")}"
+#   ]
 
 
-  depends_on = [
-  ]
-}
+#   depends_on = [
+#   ]
+# }
 
 # resource "kubectl_manifest" "grafana_gateway" {
 

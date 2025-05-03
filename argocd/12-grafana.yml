@@ -1,36 +1,88 @@
-apiVersion: networking.istio.io/v1alpha3
-kind: Gateway
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
 metadata:
   name: grafana
-  namespace: prometheus
+  namespace: argocd
 spec:
-  selector:
-    istio: ingressgateway 
-  servers:
-  - port:
-      number: 80
-      name: http
-      protocol: HTTP
-    hosts:
-    - grafana.homelab.msfidelis.com.br
----
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  name: grafana
-  namespace: prometheus
-spec:
-  hosts:
-  - grafana.homelab.msfidelis.com.br
-  gateways:
-  - grafana
-  http:
-  - match:
-    - uri:
-        prefix: /
-    route:
-    - destination:
-        host: prometheus-grafana
-        port:
-          number: 80
----
+  generators:
+    - list:
+        elements:
+          - cluster: https://kubernetes.default.svc
+  template:
+    metadata:
+      name: grafana
+    spec:
+      project: "system"
+      source:
+        repoURL: 'https://grafana.github.io/helm-charts'
+        chart: grafana
+        targetRevision: 8.14.1
+        helm:
+          releaseName: grafana
+          valuesObject:
+
+            adminUser: admin
+            adminPassword: prom-operator        
+                    
+            persistence:
+                enabled: true
+                size: 10Gi
+
+            initChownData:
+                enabled: false
+
+            datasources:
+              datasources.yaml:
+                apiVersion: 1
+                datasources:
+                  - name: Loki
+                    type: loki
+                    access: proxy
+                    url: http://loki-gateway.loki.svc.cluster.local
+                    isDefault: false
+                    jsonData:
+                      maxLines: 1000
+                      derivedFields:
+                      - datasourceName: Tempo
+                        datasourceUid: Tempo
+                        matcherRegex: '\\"traceID\\":\\"([^\\"]+)\\"'
+                        name: traceID
+                        url: $${__value.raw}                      
+
+                  - name: Tempo
+                    type: tempo
+                    access: proxy
+                    url: http://tempo-gateway.tempo.svc.cluster.local
+                    basicAuth: false
+                    jsonData:
+                      tracesToMetrics:
+                        datasourceUid: 'Prometheus'
+                      tracesToLogs:
+                        datasourceUid: 'Loki'
+                      serviceMap:
+                        datasourceUid: 'Prometheus'
+                      nodeGraph:
+                        enabled: true
+
+
+                  - name: Prometheus
+                    type: prometheus
+                    access: proxy
+                    url: http://prometheus-server.prometheus.svc.cluster.local:80
+                    isDefault: true
+
+                  - name: Mimir
+                    type: prometheus
+                    access: proxy
+                    url: http://prometheus-server.prometheus.svc.cluster.local:80
+                    # jsonData:
+                    #   prometheusType: Mimir
+
+
+      destination:
+        server: '{{ cluster }}'
+        namespace: grafana
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+        automated: {}
