@@ -48,6 +48,11 @@ resource "helm_release" "argocd" {
     value = "https://github.com/argoproj-labs/rollout-extension/releases/download/v0.3.6/extension.tar"
   }
 
+  set {
+    name  = "applicationSet.extraArgs[0]"
+    value = "--enable-progressive-syncs"
+  }
+
   depends_on = [ helm_release.istio_ingress ]
 
 }

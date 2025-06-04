@@ -24,7 +24,7 @@ spec:
               name: shard-router
               image: docker.io/fidelissauro/msc-shard-router:latest
               namespace: shard-router
-              iam: ""
+              iam: "none"
               capacity:
                 requests: 
                   cpu: 100m

@@ -14,10 +14,31 @@ spec:
           - shard: "02"
             cluster: https://kubernetes.default.svc
           - shard: "03"
-            cluster: https://kubernetes.default.svc                                 
+            cluster: https://kubernetes.default.svc
+  strategy:
+    type: RollingSync
+    rollingSync:
+      steps:
+        - matchExpressions:
+            - key: shard
+              operator: In
+              values:
+                - "01"
+        - matchExpressions:
+            - key: shard
+              operator: In
+              values:
+                - "02"
+        - matchExpressions:
+            - key: shard
+              operator: In
+              values:
+                - "03"     
   template:
     metadata:
       name: transactions-{{ shard }}
+      labels:
+        shard: "{{ shard }}"
     spec:
       project: "transactions-shard-{{ shard }}"
       source:
@@ -31,7 +52,7 @@ spec:
               name: transactions
               image: docker.io/fidelissauro/msc-transaction-api:latest
               namespace: shard-{{ shard }}
-              iam: ""
+              iam: "none"
               capacity:
                 requests:
                   cpu: 100m
@@ -64,8 +85,8 @@ spec:
                   value: "cache-{{ shard }}-redis-replicas.shard-{{ shard }}.svc.cluster.local"
                 - name: CACHE_PORT
                   value: "6379"
-                - name: VERSION
-                  value: "v5"
+                - name: FOO
+                  value: "v2"
               port:
                 name: http-web
                 port: 8080
@@ -114,5 +135,5 @@ spec:
       destination:
         server: '{{ cluster }}'
         namespace: argocd
-      syncPolicy:
+      # syncPolicy:
         # automated: {}
