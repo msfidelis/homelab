@@ -39,7 +39,7 @@ resource "helm_release" "kiali-server" {
 
   set {
     name  = "external_services.prometheus.url"
-    value = "http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090"
+    value = "http://prometheus-server.prometheus.svc.cluster.local:80"
   }
 
   set {

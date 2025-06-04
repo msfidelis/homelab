@@ -1,0 +1,62 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: opentelemetry-collector
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - cluster: https://kubernetes.default.svc
+  template:
+    metadata:
+      name: opentelemetry-collector
+    spec:
+      project: "system"
+      source:
+        repoURL: "https://open-telemetry.github.io/opentelemetry-helm-charts"
+        chart: "opentelemetry-collector"
+        targetRevision: "0.126.0"
+        helm:
+          releaseName: "opentelemetry-collector"
+          valuesObject:
+
+            mode: deployment
+
+            image:
+              repository: otel/opentelemetry-collector-k8s
+              pullPolicy: IfNotPresent
+
+            config:
+              receivers:
+                otlp:
+                  protocols:
+                    grpc:
+                      endpoint: 0.0.0.0:4317
+                    http:
+                      endpoint: 0.0.0.0:4318
+                zipkin: {}
+
+              processors:
+                batch: {}
+
+              exporters:
+                otlphttp:
+                  endpoint: "http://tempo-gateway.tempo.svc.cluster.local:80"
+                  tls:
+                    insecure: true
+
+              service:
+                pipelines:
+                  traces:
+                    receivers: [otlp, zipkin]
+                    processors: [batch]
+                    exporters: [otlphttp]
+
+      destination:
+        server: "{{ cluster }}"
+        namespace: kube-system
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+        automated: {}

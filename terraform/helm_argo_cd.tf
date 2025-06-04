@@ -7,6 +7,11 @@ resource "helm_release" "argocd" {
   repository = "https://argoproj.github.io/argo-helm"
   chart      = "argo-cd"
 
+  // toor
+  set {
+    name  = "configs.secret.argocdServerAdminPassword"
+    value = "$2a$10$GxWjaA6lo6HJUTHjzuPcfOyCUjt0FdIrD7NaiWMNlUlWKtjJeu1r2"
+  }
 
   set {
     name  = "server.extraArgs[0]"

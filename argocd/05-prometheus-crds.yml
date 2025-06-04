@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: metrics-server
+  name: prometheus-crds
   namespace: argocd
 spec:
   generators:
@@ -10,24 +10,24 @@ spec:
           - cluster: https://kubernetes.default.svc
   template:
     metadata:
-      name: metrics-server
+      name: prometheus-crds
     spec:
       project: "system"
       source:
-        repoURL: "https://kubernetes-sigs.github.io/metrics-server/"
-        chart: "metrics-server"
-        targetRevision: "3.12.2"
+        repoURL: 'https://prometheus-community.github.io/helm-charts'
+        chart: prometheus-operator-crds
+        targetRevision: 20.0.1
         helm:
-          releaseName: "metrics-server"
+          releaseName: prometheus-crds
           valuesObject:
-            apiService:
-              create: true
-            serviceMonitor:
-              enabled: true
+
+            prometheusSpec:
+
       destination:
-        server: "{{ cluster }}"
-        namespace: kube-system
+        server: '{{ cluster }}'
+        namespace: prometheus
       syncPolicy:
         syncOptions:
           - CreateNamespace=true
+          - ServerSideApply=true
         automated: {}

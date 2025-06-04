@@ -1,35 +1,35 @@
-apiVersion: networking.istio.io/v1alpha3
-kind: Gateway
-metadata:
-  name: ollama-gateway
-  namespace: ollama
-spec:
-  selector:
-    istio: ingressgateway 
-  servers:
-  - port:
-      number: 80
-      name: http
-      protocol: HTTP
-    hosts:
-    - chat.homelab.msfidelis.com.br
----
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  name: ollama
-  namespace: ollama
-spec:
-  hosts:
-  - chat.homelab.msfidelis.com.br
-  gateways:
-  - ollama-gateway
-  http:
-  - match:
-    - uri:
-        prefix: /
-    route:
-    - destination:
-        host: ollama
-        port:
-          number: 11434
+# apiVersion: networking.istio.io/v1alpha3
+# kind: Gateway
+# metadata:
+#   name: ollama-gateway
+#   namespace: ollama
+# spec:
+#   selector:
+#     istio: ingressgateway 
+#   servers:
+#   - port:
+#       number: 80
+#       name: http
+#       protocol: HTTP
+#     hosts:
+#     - chat.homelab.msfidelis.com.br
+# ---
+# apiVersion: networking.istio.io/v1alpha3
+# kind: VirtualService
+# metadata:
+#   name: ollama
+#   namespace: ollama
+# spec:
+#   hosts:
+#   - chat.homelab.msfidelis.com.br
+#   gateways:
+#   - ollama-gateway
+#   http:
+#   - match:
+#     - uri:
+#         prefix: /
+#     route:
+#     - destination:
+#         host: ollama
+#         port:
+#           number: 11434
