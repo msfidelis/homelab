@@ -33,7 +33,7 @@
 #       name: http
 #       protocol: HTTP
 #     hosts:
-#     - grafana-stack.homelab.msfidelis.com.br
+#     - grafana-stack.homelab.fidelissauro.dev
 # YAML
 
 #   depends_on = [
@@ -52,7 +52,7 @@
 #   namespace: grafana
 # spec:
 #   hosts:
-#   - grafana-stack.homelab.msfidelis.com.br
+#   - grafana-stack.homelab.fidelissauro.dev
 #   gateways:
 #   -  grafana
 #   http:

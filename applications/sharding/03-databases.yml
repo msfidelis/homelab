@@ -1,6 +1,3 @@
-
-
-
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
@@ -24,21 +21,64 @@ spec:
       source:
         repoURL: "registry-1.docker.io" # OCI Repository
         chart: "bitnamicharts/postgresql"
-        targetRevision: "16.4.5" # Chart version
+        targetRevision: "16.7.27" # Chart version
         helm:
           releaseName: db-{{ shard }}
           valuesObject:
+            global:
+              security:
+                allowInsecureImages: true
             auth:
               username: fidelissauro
               password: doutorequemtemdoutorado
               database: transactions
-            global:
-              postgresql:
-                service:
-                  type: ClusterIP
-                  port: 5432 
-
-
+              enablePostgresUser: true
+              postgresPassword: doutorequemtemdoutorado
+            image:
+              registry: docker.io
+              repository: bitnamilegacy/postgresql
+              tag: 17.2.0
+            primary:
+              service:
+                type: ClusterIP
+                ports:
+                  postgresql: 5432
+                clusterIP: None  # Headless service para melhor DNS
+              networkPolicy:
+                enabled: false
+              configuration: |
+                listen_addresses = '*'
+                port = 5432
+                max_connections = 200
+                shared_buffers = 128MB
+                effective_cache_size = 4GB
+                maintenance_work_mem = 64MB
+                checkpoint_completion_target = 0.9
+                wal_buffers = 16MB
+                default_statistics_target = 100
+                random_page_cost = 1.1
+                effective_io_concurrency = 200
+                work_mem = 4MB
+                min_wal_size = 1GB
+                max_wal_size = 4GB
+                log_statement = 'all'
+                log_destination = 'stderr'
+                logging_collector = on
+                tcp_keepalives_idle = 600
+                tcp_keepalives_interval = 30
+                tcp_keepalives_count = 3
+            readReplicas:
+              service:
+                type: ClusterIP
+                ports:
+                  postgresql: 5432
+            resources:
+              limits:
+                memory: 512Mi
+                cpu: 500m
+              requests:
+                memory: 256Mi
+                cpu: 250m
       destination:
         server: '{{ cluster }}'
         namespace: shard-{{ shard }}

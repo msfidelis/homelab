@@ -12,7 +12,7 @@ spec:
       name: http
       protocol: HTTP
     hosts:
-    - pgadmin.homelab.msfidelis.com.br
+    - pgadmin.homelab.fidelissauro.dev
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
@@ -21,7 +21,7 @@ metadata:
   namespace: pgadmin
 spec:
   hosts:
-  - pgadmin.homelab.msfidelis.com.br
+  - pgadmin.homelab.fidelissauro.dev
   gateways:
   - pgadmin-gateway
   http:

@@ -21,7 +21,7 @@
 #           releaseName: "kiali-server"
 #           valuesObject:
 #             server:
-#               web_fqdn: "kiali.homelab.msfidelis.com.br"
+#               web_fqdn: "kiali.homelab.fidelissauro.dev"
 #             auth:
 #               strategy: "anonymous"
 #             external_services:

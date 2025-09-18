@@ -45,7 +45,7 @@
 #       name: http
 #       protocol: HTTP
 #     hosts:
-#     - argo-workflows.homelab.msfidelis.com.br
+#     - argo-workflows.homelab.fidelissauro.dev
 # YAML
 
 #   depends_on = [
@@ -64,7 +64,7 @@
 #   namespace: argo-workflows
 # spec:
 #   hosts:
-#   - argo-workflows.homelab.msfidelis.com.br
+#   - argo-workflows.homelab.fidelissauro.dev
 #   gateways:
 #   -  argo-workflows-server
 #   http:

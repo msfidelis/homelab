@@ -45,7 +45,7 @@
 #       name: http
 #       protocol: HTTP
 #     hosts:
-#     - plex.homelab.msfidelis.com.br
+#     - plex.homelab.fidelissauro.dev
 # ---
 # apiVersion: networking.istio.io/v1alpha3
 # kind: VirtualService
@@ -54,7 +54,7 @@
 #   namespace: plex
 # spec:
 #   hosts:
-#   - plex.homelab.msfidelis.com.br
+#   - plex.homelab.fidelissauro.dev
 #   gateways:
 #   - plex
 #   http:

@@ -34,7 +34,7 @@
 #       name: http
 #       protocol: HTTP
 #     hosts:
-#     - grafana.homelab.msfidelis.com.br
+#     - grafana.homelab.fidelissauro.dev
 # YAML
 
 #   depends_on = [
@@ -54,7 +54,7 @@
 #   namespace: prometheus
 # spec:
 #   hosts:
-#   - grafana.homelab.msfidelis.com.br
+#   - grafana.homelab.fidelissauro.dev
 #   gateways:
 #   - grafana
 #   http:

@@ -23,7 +23,7 @@ spec:
       name: http
       protocol: HTTP
     hosts:
-    - "health.homelab.msfidelis.com.br" 
+    - "health.homelab.fidelissauro.dev" 
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
@@ -33,7 +33,7 @@ metadata:
 spec:
   hosts:
   - "health-api.nutrition.svc.cluster.local"
-  - "health.homelab.msfidelis.com.br"
+  - "health.homelab.fidelissauro.dev"
   gateways:
   - health-api
   http:

@@ -12,7 +12,7 @@
 #       name: http
 #       protocol: HTTP
 #     hosts:
-#     - jaeger.homelab.msfidelis.com.br
+#     - jaeger.homelab.fidelissauro.dev
 # ---
 # apiVersion: networking.istio.io/v1alpha3
 # kind: VirtualService
@@ -21,7 +21,7 @@
 #   namespace: tracing
 # spec:
 #   hosts:
-#   - jaeger.homelab.msfidelis.com.br
+#   - jaeger.homelab.fidelissauro.dev
 #   gateways:
 #   - jaeger-query
 #   http:

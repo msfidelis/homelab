@@ -50,7 +50,7 @@ spec:
           valuesObject:
             app:
               name: transactions
-              image: docker.io/fidelissauro/msc-transaction-api:latest
+              image: ghcr.io/msfidelis/msc-transactions-api:0.0.4
               namespace: shard-{{ shard }}
               iam: "none"
               capacity:
@@ -72,7 +72,7 @@ spec:
                     - setWeight: 100
               envs:
                 - name: DATABASE_HOST
-                  value: "db-{{ shard }}-postgresql.shard-{{ shard }}.svc.cluster.local"
+                  value: "db-{{ shard }}-postgresql"
                 - name: DATABASE_PORT
                   value: "5432"
                 - name: DATABASE_USER
@@ -82,11 +82,17 @@ spec:
                 - name: DATABASE_DB
                   value: "transactions"
                 - name: CACHE_HOST
-                  value: "cache-{{ shard }}-redis-replicas.shard-{{ shard }}.svc.cluster.local"
+                  value: "redis-{{ shard }}-master"
                 - name: CACHE_PORT
                   value: "6379"
-                - name: FOO
-                  value: "v2"
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: POD_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
               port:
                 name: http-web
                 port: 8080
@@ -94,6 +100,18 @@ spec:
                 targetPort: 8080
               service:
                 type: ClusterIP
+              
+              # Configurações de DNS e rede
+              dnsPolicy: ClusterFirst
+              dnsConfig:
+                options:
+                  - name: ndots
+                    value: "1"
+                  - name: timeout
+                    value: "5"
+                  - name: attempts
+                    value: "3"
+              
               istio:
                 gateway: 
                   selector: ingressgateway
@@ -117,17 +135,30 @@ spec:
                 path: /metrics
 
               probes:
+                readinessProbe:
+                  enabled: true
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+                  httpGet:
+                    path: /healthcheck
+                    port: 8080
                 livenessProbe:
                   enabled: true
+                  initialDelaySeconds: 60
                   failureThreshold: 10
                   periodSeconds: 10
+                  timeoutSeconds: 5
                   httpGet:
                     path: /healthcheck
                     port: 8080
                 startupProbe:
                   enabled: true
-                  failureThreshold: 10
+                  initialDelaySeconds: 30
+                  failureThreshold: 30
                   periodSeconds: 10
+                  timeoutSeconds: 5
                   httpGet:
                     path: /healthcheck
                     port: 8080

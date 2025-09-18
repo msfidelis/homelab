@@ -74,7 +74,7 @@ spec:
       name: http
       protocol: HTTP
     hosts:
-    - argocd.homelab.msfidelis.com.br
+    - argocd.homelab.fidelissauro.dev
 YAML
 
   depends_on = [
@@ -85,7 +85,6 @@ YAML
 
 
 resource "kubectl_manifest" "argocd_virtual_service" {
-
   yaml_body = <<YAML
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
@@ -94,7 +93,7 @@ metadata:
   namespace: argocd
 spec:
   hosts:
-  - argocd.homelab.msfidelis.com.br
+  - argocd.homelab.fidelissauro.dev
   gateways:
   - argocd-gateway
   http:
@@ -109,7 +108,7 @@ spec:
 YAML
 
   depends_on = [
-    helm_release.argocd,
+    helm_release.argocd
   ]
 
 }

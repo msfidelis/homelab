@@ -22,7 +22,7 @@ spec:
           valuesObject:
             app:
               name: shard-router
-              image: docker.io/fidelissauro/msc-shard-router:latest
+              image: ghcr.io/msfidelis/msc-shard-router:latest
               namespace: shard-router
               iam: "none"
               capacity:
@@ -55,6 +55,8 @@ spec:
                   value: "http://transactions.shard-02.svc.cluster.local:8080"
                 - name: SHARD_03_URL
                   value: "http://transactions.shard-03.svc.cluster.local:8080"
+                - name: HASHING_ALGORITHM
+                  value: "SHA512"
               port:
                 name: http-web
                 port: 8080
@@ -68,7 +70,7 @@ spec:
                   # HTTP, HTTP2, GRPC, GRPC-WEB, MONGO, REDIS, MYSQL, TCP
                   protocol: HTTP 
                   port: 80
-                host: shard-router.homelab.msfidelis.com.br
+                host: shard-router.homelab.fidelissauro.dev
                 virtualService:
                   http:
                     enabled: true

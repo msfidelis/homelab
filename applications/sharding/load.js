@@ -77,7 +77,7 @@ export default function () {
   });
 
   let creditResponse = http.post(
-    'http://shard-router.homelab.msfidelis.com.br:80/transactions',
+    'http://shard-router.homelab.fidelissauro.dev:80/transactions',
     transactionPayload,
     {
       headers: {
@@ -95,7 +95,7 @@ export default function () {
 
     // Extrato
   let statementResponse = http.get(
-    'http://shard-router.homelab.msfidelis.com.br:80/statements',
+    'http://shard-router.homelab.fidelissauro.dev:80/statements',
     {
       headers: {
         id_client: clientId,

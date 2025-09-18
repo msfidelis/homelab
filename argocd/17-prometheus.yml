@@ -12,7 +12,7 @@ spec:
       name: http
       protocol: HTTP
     hosts:
-    - prometheus.homelab.msfidelis.com.br
+    - prometheus.homelab.fidelissauro.dev
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
@@ -21,7 +21,7 @@ metadata:
   namespace: prometheus
 spec:
   hosts:
-  - prometheus.homelab.msfidelis.com.br
+  - prometheus.homelab.fidelissauro.dev
   gateways:
   - prometheus
   http:

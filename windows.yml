@@ -104,7 +104,7 @@ spec:
   gateways:
   - windows
   hosts:
-  - windows.homelab.msfidelis.com.br
+  - windows.homelab.fidelissauro.dev
   - windows
   - windows.windows.svc.cluster.local
   http:
@@ -129,7 +129,7 @@ spec:
     istio: ingressgateway
   servers:
   - hosts:
-    - windows.homelab.msfidelis.com.br
+    - windows.homelab.fidelissauro.dev
     port:
       name: http
       number: 80

@@ -12,7 +12,7 @@
 #       name: http
 #       protocol: HTTP
 #     hosts:
-#     - chat.homelab.msfidelis.com.br
+#     - chat.homelab.fidelissauro.dev
 # ---
 # apiVersion: networking.istio.io/v1alpha3
 # kind: VirtualService
@@ -21,7 +21,7 @@
 #   namespace: ollama
 # spec:
 #   hosts:
-#   - chat.homelab.msfidelis.com.br
+#   - chat.homelab.fidelissauro.dev
 #   gateways:
 #   - ollama-gateway
 #   http:

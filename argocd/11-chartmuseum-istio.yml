@@ -12,7 +12,7 @@ spec:
       name: http
       protocol: HTTP
     hosts:
-    - chartmuseum.homelab.msfidelis.com.br
+    - chartmuseum.homelab.fidelissauro.dev
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
@@ -21,7 +21,7 @@ metadata:
   namespace: chartmuseum
 spec:
   hosts:
-  - chartmuseum.homelab.msfidelis.com.br
+  - chartmuseum.homelab.fidelissauro.dev
   gateways:
   - chartmuseum-gateway
   http:

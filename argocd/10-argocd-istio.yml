@@ -12,7 +12,7 @@
 #       name: http
 #       protocol: HTTP
 #     hosts:
-#     - argocd.homelab.msfidelis.com.br
+#     - argocd.homelab.fidelissauro.dev
 # ---
 # apiVersion: networking.istio.io/v1alpha3
 # kind: VirtualService
@@ -21,7 +21,7 @@
 #   namespace: argocd
 # spec:
 #   hosts:
-#   - argocd.homelab.msfidelis.com.br
+#   - argocd.homelab.fidelissauro.dev
 #   gateways:
 #   - argocd-gateway
 #   http:

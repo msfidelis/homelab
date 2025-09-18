@@ -9,7 +9,7 @@ resource "helm_release" "kiali-server" {
 
   set {
     name  = "server.web_fqdn"
-    value = "kiali.homelab.msfidelis.com.br"
+    value = "kiali.homelab.fidelissauro.dev"
   }
 
   set {
@@ -33,7 +33,7 @@ resource "helm_release" "kiali-server" {
 
   set {
     name  = "external_services.tracing.external_url"
-    value = "http://jaeger.homelab.msfidelis.com.br"
+    value = "http://jaeger.homelab.fidelissauro.dev"
   }
 
 
@@ -49,7 +49,7 @@ resource "helm_release" "kiali-server" {
 
   set {
     name  = "external_services.grafana.external_url"
-    value = "http://grafana.homelab.msfidelis.com.br"
+    value = "http://grafana.homelab.fidelissauro.dev"
   }
 
 
@@ -148,7 +148,7 @@ spec:
       name: http
       protocol: HTTP
     hosts:
-    - kiali.homelab.msfidelis.com.br
+    - kiali.homelab.fidelissauro.dev
 YAML
 
   depends_on = [
@@ -168,7 +168,7 @@ metadata:
   namespace: istio-system
 spec:
   hosts:
-  - kiali.homelab.msfidelis.com.br
+  - kiali.homelab.fidelissauro.dev
   gateways:
   - kiali-gateway
   http:
