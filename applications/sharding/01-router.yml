@@ -33,18 +33,26 @@ spec:
                   cpu: 200m
                   memory: 256Mi
                 autoscaling: {}
-                min: 3
+                min: 6
                 max: 10
               rollout:
                 strategy:
                   canary:
                     steps:
-                    # - setWeight: 0
-                    # - pause: { }
+                    - setWeight: 10
+                    - pause: { duration: 60s }
+                    - setWeight: 20
+                    - pause: { duration: 60s }
+                    - setWeight: 40
+                    - pause: { duration: 60s }
+                    - setWeight: 60
+                    - pause: { duration: 60s }
+                    - setWeight: 80
+                    - pause: { duration: 60s }
                     - setWeight: 100
               envs:
                 - name: VERSION
-                  value: "shard-v1"
+                  value: "shard-v7"
                 - name: ROUTER_PORT
                   value: "8080"
                 - name: SHARDING_KEY
@@ -78,9 +86,38 @@ spec:
                       attempts: 2
                       perTryTimeout: 3s
                       retryOn: refused-stream
-                DestinationRule:
+                destinationRule:
                   enabled: true
-
+                  host: shard-router.shard-router.svc.cluster.local
+                  loadBalancer:
+                    enabled: true
+                    simple: ROUND_ROBIN
+                    warmup:
+                      enabled: true
+                      minimumPercent: 3.0
+                      duration: 5m
+                      aggression: 1.0
+                  connectionPool:
+                    enabled: false
+                    tcp:
+                      enabled: false
+                      maxConnections: 100
+                      connectTimeout: 1s
+                      tcpKeepalive:
+                        time: 30s
+                        interval: 5s
+                    http:
+                      enabled: false
+                      http1MaxPendingRequests: 100
+                      http2MaxRequests: 100
+                      maxRequestsPerConnection: 100
+                      maxRetries: 2
+                  outlierDetection:
+                    enabled: false
+                    consecutive5xxErrors: 2
+                    interval: 300ms
+                    baseEjectionTime: 60s
+                    maxEjectionPercent: 100
               prometheus:
                 scrape: "true"
                 port: 8080

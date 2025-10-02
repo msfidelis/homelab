@@ -88,6 +88,11 @@ app:
       loadBalancer:
         enabled: true
         simple: ROUND_ROBIN
+        warmup:
+          enabled: true
+          minimumPercent: 2.0
+          duration: 2m
+          aggression: 1.0
       connectionPool:
         enabled: true
         tcp:
@@ -109,6 +114,11 @@ app:
         interval: 300ms
         baseEjectionTime: 60s
         maxEjectionPercent: 100
+
+  prometheus:
+    scrape: "true"
+    port: 8080
+    path: /metrics
 
   probes:
     livenessProbe:

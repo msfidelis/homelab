@@ -11,6 +11,12 @@ spec:
     loadBalancer:
       simple: {{ .Values.app.istio.destinationRule.loadBalancer.simple }}
     {{- end }}
+      {{- if .Values.app.istio.destinationRule.loadBalancer.warmup.enabled }}
+      warmup:
+        minimumPercent: {{ .Values.app.istio.destinationRule.loadBalancer.warmup.minimumPercent }}
+        duration: {{ .Values.app.istio.destinationRule.loadBalancer.warmup.duration }}
+        aggression: {{ .Values.app.istio.destinationRule.loadBalancer.warmup.aggression }}
+      {{- end }}
     {{- if .Values.app.istio.destinationRule.connectionPool.enabled }}
     connectionPool:
       {{- if .Values.app.istio.destinationRule.connectionPool.tcp.enabled }}
