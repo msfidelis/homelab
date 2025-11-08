@@ -124,7 +124,31 @@ resource "helm_release" "kiali-server" {
     value = "prom-operator"
   }
 
+set {
+  name  = "deployment.dns.config.options[0].name"
+  value = "ndots"
+}
+set {
+  name  = "deployment.dns.config.options[0].value"
+  value = "\"1\""
+}
+set {
+  name  = "deployment.dns.config.searches[0]"
+  value = "istio-system.svc.cluster.local"
+}
+set {
+  name  = "deployment.dns.config.searches[1]"
+  value = "svc.cluster.local"
+}
+set {
+  name  = "deployment.dns.config.searches[2]"
+  value = "cluster.local"
+}
 
+  set {
+    name  = "deployment.dns.policy"
+    value = "ClusterFirst"
+  }
 
   depends_on = [
     helm_release.istio_base,

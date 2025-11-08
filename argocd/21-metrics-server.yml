@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: metrics-server
+  namespace: kube-system
+spec:
+  generators:
+    - list:
+        elements:
+          - cluster: https://kubernetes.default.svc
+  template:
+    metadata:
+      name: metrics-server
+    spec:
+      project: "system"
+      source:
+        repoURL: "https://kubernetes-sigs.github.io/metrics-server/"
+        chart: "metrics-server"
+        targetRevision: "3.13.0"
+        helm:
+          releaseName: "metrics-server"
+          valuesObject:
+            args:
+              - --kubelet-insecure-tls
+              - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+      destination:
+        server: "{{ cluster }}"
+        namespace: metrics-server
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true

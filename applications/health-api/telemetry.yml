@@ -1,0 +1,17 @@
+# apiVersion: telemetry.istio.io/v1
+# kind: Telemetry
+# metadata:
+#   name: recommendations-telemetry
+#   namespace: nutrition
+# spec:
+#   selector:
+#     matchLabels:
+#       app: recommendations-grpc
+#   metrics:
+#   - providers:
+#     - name: prometheus
+#     overrides:
+#     - match:
+#         metric: REQUEST_COUNT
+#         direction: INBOUND
+#       enabled: true

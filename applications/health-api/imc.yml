@@ -1,0 +1,85 @@
+#######################
+###   IMC Service   ###
+#######################
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: imc-grpc
+  namespace: nutrition
+spec:
+  hosts:
+  - "imc-grpc.nutrition.svc.cluster.local"
+  http:
+  - route:
+    - destination:
+        host: imc-grpc
+        port:
+          number: 30000 
+    retries:
+      attempts: 3
+      perTryTimeout: 2s
+      retryOn: cancelled,deadline-exceeded,unavailable,internal,reset          
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: imc-grpc
+  namespace: nutrition
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: imc-grpc
+  name: imc-grpc
+  namespace: nutrition
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: imc-grpc
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "15020"
+      labels:
+        app: imc-grpc
+        name: imc-grpc
+        version: v1
+    spec:
+      serviceAccount: imc-grpc
+      containers:
+      - image: fidelissauro/imc-grpc-service:latest
+        name: imc-grpc
+        env:
+        - name: ENVIRONMENT
+          value: "dev"
+        - name: ZIPKIN_COLLECTOR_ENDPOINT
+          value: http://opentelemetry-collector.kube-system.svc.cluster.local:9411/api/v2/spans
+        ports:
+        - containerPort: 30000
+          name: grpc   
+      terminationGracePeriodSeconds: 60
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: imc-grpc
+  namespace: nutrition
+  annotations:
+    prometheus.io/scrape: "false"
+    prometheus.io/port: "30000"    
+  labels:
+    app.kubernetes.io/name: imc-grpc
+    app.kubernetes.io/instance: health-api 
+spec:
+  ports:
+  - name: grpc
+    port: 30000
+    protocol: TCP
+    appProtocol: grpc
+  selector:
+    app: imc-grpc
+  type: ClusterIP
