@@ -16,11 +16,21 @@ spec:
       source:
         repoURL: "https://kedacore.github.io/charts"
         chart: "keda"
-        targetRevision: "2.16.0"
+        targetRevision: "2.18.0"
         helm:
           releaseName: "keda"
           valuesObject:
             foo: bar
+            global:
+              dnsConfig:
+                options:
+                  - name: ndots
+                    value: "1"
+                  - name: timeout
+                    value: "5"
+                  - name: attempts
+                    value: "3"
+
       destination:
         server: "{{ cluster }}"
         namespace: keda

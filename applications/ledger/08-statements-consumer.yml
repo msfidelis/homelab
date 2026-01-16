@@ -1,0 +1,159 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: statements-consumer
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:     
+          - shard: "01"
+            cluster: https://kubernetes.default.svc    
+  template:
+    metadata:
+      name: statements-consumer
+      labels:
+        shard: "{{ shard }}"
+    spec:
+      project: "ledger"
+      source:
+        repoURL: 'http://chartmuseum.chartmuseum.svc.cluster.local:8080'
+        chart: sample
+        targetRevision: 0.1.0
+        helm:
+          releaseName: statements-consumer
+          valuesObject:
+            app:
+              name: statements-consumer
+              image: fidelissauro/ledger-statement:latest
+
+              namespace: ledger
+              iam: "none"
+              capacity:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits: 
+                  cpu: 200m
+                  memory: 256Mi
+                autoscaling: {}
+                min: 1
+                max: 1
+              rollout:
+                strategy:
+                  canary:
+                    steps:
+                    - setWeight: 100
+              envs:
+
+                - name: MONGODB_HOSTS
+                  value: "state-mongodb-headless.ledger:27017"
+                - name: MONGODB_DATABASE
+                  value: "extrato"
+                - name: MONGODB_USERNAME
+                  value: ""
+                - name: MONGODB_PASSWORD
+                  value: ""
+
+                - name: MONGODB_CONNECT_TIMEOUT
+                  value: "10s"
+                - name: MONGODB_QUERY_TIMEOUT
+                  value: "5s"
+                - name: MONGODB_MAX_POOL_SIZE
+                  value: "100"
+                - name: MONGODB_MIN_POOL_SIZE
+                  value: "10"
+
+
+                - name: KAFKA_BROKERS
+                  value: "ledger-kafka-controller-headless.ledger:9092"
+
+                - name: KAFKA_TOPIC_TRANSACTION_CONFIRMED
+                  value: "ledger_nova_transacao_confirmada"
+                - name: KAFKA_GROUP_STATEMENT
+                  value: "statement-ingestion-group"
+
+                - name: PORT
+                  value: "8080"
+
+                - name: ENVIRONMENT
+                  value: "production"
+
+                - name: LOG_LEVEL
+                  value: "info"                  
+
+              port:
+                name: http-web
+                port: 8080
+                protocol: TCP
+                targetPort: 8080
+              service:
+                type: ClusterIP
+              
+              # Configurações de DNS e rede
+              dnsPolicy: ClusterFirst
+              dnsConfig:
+                options:
+                  - name: ndots
+                    value: "4"
+                  - name: timeout
+                    value: "5"
+                  - name: attempts
+                    value: "3"
+              
+              istio:
+                gateway: 
+                  selector: ingressgateway
+                  # HTTP, HTTP2, GRPC, GRPC-WEB, MONGO, REDIS, MYSQL, TCP
+                  protocol: HTTP 
+                  port: 80
+                host: ledger-statement-ingestion.homelab.fidelissauro.dev
+                virtualService:
+                  http:
+                    enabled: false
+                    retries:
+                      attempts: 2
+                      perTryTimeout: 2s
+                      retryOn: connect-failure,refused-stream,unavailable,cancelled,503
+                DestinationRule:
+                  enabled: false
+
+              prometheus:
+                scrape: "true"
+                port: 8081
+                path: /metrics
+
+              probes:
+                readinessProbe:
+                  enabled: false
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+                  httpGet:
+                    path: /actuator/health
+                    port: 8080
+                livenessProbe:
+                  enabled: false
+                  initialDelaySeconds: 60
+                  failureThreshold: 10
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  httpGet:
+                    path: /actuator/health
+                    port: 8090
+                startupProbe:
+                  enabled: false
+                  initialDelaySeconds: 30
+                  failureThreshold: 30
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  httpGet:
+                    path: /actuator/health
+                    port: 8090
+
+      destination:
+        server: '{{ cluster }}'
+        namespace: argocd
+      syncPolicy:
+        automated: {}

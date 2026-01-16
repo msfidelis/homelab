@@ -1,0 +1,51 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: statements-mongodb
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:     
+          - shard: "01"
+            cluster: https://kubernetes.default.svc                               
+  template:
+    metadata:
+      name: statements-mongodb
+    spec:
+      project: "ledger"
+      source:
+        repoURL: "registry-1.docker.io" # OCI Repository
+        chart: "bitnamicharts/mongodb"
+        targetRevision: "18.1.20" # Chart version
+        helm:
+          releaseName: state
+          valuesObject:
+            auth:
+              enabled: true
+              usernames:
+                - "fidelissauro"
+              passwords:
+                - "doutorequemtemdoutorado"
+              databases:
+                - "extrato"
+              diagnosticMode:
+                enabled: true
+            architecture: replicaset 
+            image:
+              registry: docker.io
+              repository: bitnamilegacy/mongodb
+              tag: latest
+
+            # Persistent storage settings
+            persistence:
+              enabled: true
+              size: 2Gi
+
+      destination:
+        server: '{{ cluster }}'
+        namespace: ledger
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+        automated: {}

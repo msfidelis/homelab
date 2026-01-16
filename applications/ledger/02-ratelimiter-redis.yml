@@ -1,0 +1,67 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: redis-ratelimiter
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:     
+          - shard: "01"
+            cluster: https://kubernetes.default.svc                               
+  template:
+    metadata:
+      name: redis-ratelimiter
+    spec:
+      project: "ledger"
+      source:
+        repoURL: "registry-1.docker.io" # OCI Repository
+        chart: "bitnamicharts/redis"
+        targetRevision: "22.0.7" # Chart version
+        helm:
+          releaseName: redis-ratelimiter
+          valuesObject:
+            auth:
+              enabled: false
+            architecture: standalone
+            image:
+              registry: docker.io
+              repository: bitnamilegacy/redis
+              tag: 8.2.1-debian-12-r0
+
+            master:
+              service:
+                type: ClusterIP
+                ports:
+                  redis: 6379
+              persistence:
+                enabled: false
+              configuration: |
+                maxmemory 256mb
+                maxmemory-policy allkeys-lru
+                tcp-keepalive 60
+                timeout 300
+                databases 16
+            replica:
+              replicaCount: 0
+            resources:
+              limits:
+                memory: 256Mi
+                cpu: 250m
+              requests:
+                memory: 256Mi
+                cpu: 250m
+            metrics:
+              enabled: true
+              image:
+                registry: docker.io
+                repository: bitnamilegacy/redis-exporter
+                tag: 1.76.0-debian-12-r0
+
+      destination:
+        server: '{{ cluster }}'
+        namespace: ledger
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+        automated: {}

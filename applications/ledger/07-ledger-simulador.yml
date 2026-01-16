@@ -1,0 +1,165 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: ledger-simulador
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:     
+          - shard: "01"
+            cluster: https://kubernetes.default.svc    
+  template:
+    metadata:
+      name: ledger-simulador
+      labels:
+        shard: "{{ shard }}"
+    spec:
+      project: "ledger"
+      source:
+        repoURL: 'http://chartmuseum.chartmuseum.svc.cluster.local:8080'
+        chart: sample
+        targetRevision: 0.1.0
+        helm:
+          releaseName: ledger-simulador
+          valuesObject:
+            app:
+              name: ledger-simulador
+              image: fidelissauro/ledger-simulador:latest
+
+              namespace: ledger
+              iam: "none"
+              capacity:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits: 
+                  cpu: 200m
+                  memory: 256Mi
+                autoscaling: {}
+                min: 1
+                max: 1
+              rollout:
+                strategy:
+                  canary:
+                    steps:
+                    - setWeight: 100
+              envs:
+
+                - name: KAFKA_BROKERS
+                  value: "ledger-kafka-controller-headless.ledger:9092"
+
+                - name: KAFKA_TOPIC_CONTA_CRIADA
+                  value: "conta_criada"
+                - name: KAFKA_TOPIC_CONTA_MOVIMENTACAO
+                  value: "conta_movimentacao"
+
+                - name: KAFKA_REQUIRED_ACKS
+                  value: "1"
+                - name: KAFKA_ASYNC
+                  value: "true"
+                - name: KAFKA_BATCH_SIZE
+                  value: "10"
+                - name: KAFKA_BATCH_TIMEOUT
+                  value: "10ms"
+
+                - name: KAFKA_COMPRESSION
+                  value: "ledger-account-group"  
+
+                - name: SIM_NUM_MOVIMENTACOES
+                  value: "1000"
+                - name: SIM_NUM_WORKERS
+                  value: "1"
+
+                - name: SIM_EVENTS_PER_WORKER
+                  value: "100"
+                - name: SIM_SLEEP_BETWEEN_EVENTS
+                  value: "60s"
+                - name: SIM_CREDITO_PROBABILITY
+                  value: "0.7"
+                - name: SIM_TRANSFER_PROBABILITY
+                  value: "0.3"
+                - name: SIM_WAIT_AFTER_CREATE
+                  value: "10ms"
+
+                - name: ENVIRONMENT
+                  value: "production"
+
+                - name: LOG_LEVEL
+                  value: "info"                  
+
+              port:
+                name: http-web
+                port: 8081
+                protocol: TCP
+                targetPort: 8081
+              service:
+                type: ClusterIP
+              
+              # Configurações de DNS e rede
+              dnsPolicy: ClusterFirst
+              dnsConfig:
+                options:
+                  - name: ndots
+                    value: "1"
+                  - name: timeout
+                    value: "5"
+                  - name: attempts
+                    value: "3"
+              
+              istio:
+                gateway: 
+                  selector: ingressgateway
+                  # HTTP, HTTP2, GRPC, GRPC-WEB, MONGO, REDIS, MYSQL, TCP
+                  protocol: HTTP 
+                  port: 80
+                host: ledger.homelab.fidelissauro.dev
+                virtualService:
+                  http:
+                    enabled: false
+                    retries:
+                      attempts: 2
+                      perTryTimeout: 2s
+                      retryOn: connect-failure,refused-stream,unavailable,cancelled,503
+                DestinationRule:
+                  enabled: false
+
+              prometheus:
+                scrape: "true"
+                port: 8081
+                path: /metrics
+
+              probes:
+                readinessProbe:
+                  enabled: false
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+                  httpGet:
+                    path: /actuator/health
+                    port: 8080
+                livenessProbe:
+                  enabled: false
+                  initialDelaySeconds: 60
+                  failureThreshold: 10
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  httpGet:
+                    path: /actuator/health
+                    port: 8090
+                startupProbe:
+                  enabled: false
+                  initialDelaySeconds: 30
+                  failureThreshold: 30
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  httpGet:
+                    path: /actuator/health
+                    port: 8090
+
+      destination:
+        server: '{{ cluster }}'
+        namespace: argocd
+      syncPolicy:
+        automated: {}

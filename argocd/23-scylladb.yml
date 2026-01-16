@@ -1,0 +1,105 @@
+# apiVersion: argoproj.io/v1alpha1
+# kind: ApplicationSet
+# metadata:
+#   name: scylla-operator
+#   namespace: argocd
+# spec:
+#   generators:
+#     - list:
+#         elements:
+#           - cluster: https://kubernetes.default.svc                               
+#   template:
+#     metadata:
+#       name: scylla-operator
+#     spec:
+#       project: "system"
+#       source:
+#         repoURL: "https://scylla-operator-charts.storage.googleapis.com/stable" # OCI Repository
+#         chart: "scylla-operator"
+#         targetRevision: "v1.19.0" # Chart version
+
+#       destination:
+#         server: '{{ cluster }}'
+#         namespace: scylla-operator
+#       syncPolicy:
+#         syncOptions:
+#           - CreateNamespace=true
+#           - ServerSideApply=true
+#         automated: {}
+# ---
+# apiVersion: argoproj.io/v1alpha1
+# kind: ApplicationSet
+# metadata:
+#   name: scylla-manager
+#   namespace: argocd
+# spec:
+#   generators:
+#     - list:
+#         elements:
+#           - cluster: https://kubernetes.default.svc                               
+#   template:
+#     metadata:
+#       name: scylla-manager
+#     spec:
+#       project: "system"
+#       source:
+#         repoURL: "https://scylla-operator-charts.storage.googleapis.com/stable" # OCI Repository
+#         chart: "scylla-manager"
+#         targetRevision: "v1.19.0" # Chart version
+#         helm:
+#           releaseName: "metrics-server"      
+#           valuesObject:
+#             scylla:
+#               datacenter: us-east-1
+#               racks:
+#               - name: us-east-1b
+#                 members: 2
+#                 storage:
+#                   capacity: 1G
+#                   storageClassName: local-path
+#                 resources:
+#                   limits:
+#                     cpu: 1
+#                     memory: 200Mi
+#                   requests:
+#                     cpu: 1
+#                     memory: 200Mi
+#                 placement: {}
+#       destination:
+#         server: '{{ cluster }}'
+#         namespace: scylla-manager
+#       syncPolicy:
+#         syncOptions:
+#           - CreateNamespace=true
+#           - ServerSideApply=true
+#         automated: {}
+# ---
+# apiVersion: argoproj.io/v1alpha1
+# kind: ApplicationSet
+# metadata:
+#   name: scylla
+#   namespace: argocd
+# spec:
+#   generators:
+#     - list:
+#         elements:
+#           - cluster: https://kubernetes.default.svc                               
+#   template:
+#     metadata:
+#       name: scylla
+#     spec:
+#       project: "system"
+#       source:
+#         repoURL: "https://scylla-operator-charts.storage.googleapis.com/stable" # OCI Repository
+#         chart: "scylla"
+#         targetRevision: "v1.19.0" # Chart version
+
+#       destination:
+#         server: '{{ cluster }}'
+#         namespace: scylla
+#       syncPolicy:
+#         syncOptions:
+#           - CreateNamespace=true
+#           - ServerSideApply=true
+#         automated: {}
+

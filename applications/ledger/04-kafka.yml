@@ -1,0 +1,60 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: ledger-kafka
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:     
+          - shard: "01"
+            cluster: https://kubernetes.default.svc                                 
+  template:
+    metadata:
+      name: ledger-kafka
+    spec:
+      project: "ledger"
+      source:
+        repoURL: "oci://registry-1.docker.io/bitnamicharts/kafka" 
+        chart: "kafka"
+        targetRevision: "32.4.3"
+        helm:
+          releaseName: ledger-kafka
+          valuesObject:
+            image:
+              repository: bitnamilegacy/kafka
+            listeners:
+              client:
+                protocol: PLAINTEXT
+              external:
+                enabled: true
+              internal:
+                enabled: true
+            provisioning:
+              enabled: true
+              waitForKafka: true
+              numPartitions: 3
+              replicationFactor: 2
+              topics:
+                - name: conta_criada
+                  partitions: 3
+                  replicationFactor: 2
+                - name: conta_movimentacao
+                  partitions: 3
+                  replicationFactor: 2
+                - name: ledger_nova_conta_registrada
+                  partitions: 3
+                  replicationFactor: 2
+                - name: ledger_nova_transacao_confirmada
+                  partitions: 3
+                  replicationFactor: 2
+                - name: ledger_saldo_atualizado
+                  partitions: 3
+                  replicationFactor: 2
+      destination:
+        server: '{{ cluster }}'
+        namespace: ledger
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+        automated: {}

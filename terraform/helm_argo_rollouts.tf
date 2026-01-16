@@ -10,6 +10,11 @@ resource "helm_release" "argo_rollouts" {
   create_namespace = true
 
   set {
+    name  = "installCRDs"
+    value = true
+  }
+
+  set {
     name  = "dashboard.enabled"
     value = false
   }

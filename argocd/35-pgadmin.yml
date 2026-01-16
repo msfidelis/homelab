@@ -1,35 +1,35 @@
-apiVersion: networking.istio.io/v1alpha3
-kind: Gateway
-metadata:
-  name: pgadmin-gateway
-  namespace: pgadmin
-spec:
-  selector:
-    istio: ingressgateway 
-  servers:
-  - port:
-      number: 80
-      name: http
-      protocol: HTTP
-    hosts:
-    - pgadmin.homelab.fidelissauro.dev
----
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  name: pgadmin
-  namespace: pgadmin
-spec:
-  hosts:
-  - pgadmin.homelab.fidelissauro.dev
-  gateways:
-  - pgadmin-gateway
-  http:
-  - match:
-    - uri:
-        prefix: /
-    route:
-    - destination:
-        host: pgadmin-pgadmin4
-        port:
-          number: 80
+# apiVersion: networking.istio.io/v1alpha3
+# kind: Gateway
+# metadata:
+#   name: pgadmin-gateway
+#   namespace: pgadmin
+# spec:
+#   selector:
+#     istio: ingressgateway 
+#   servers:
+#   - port:
+#       number: 80
+#       name: http
+#       protocol: HTTP
+#     hosts:
+#     - pgadmin.homelab.fidelissauro.dev
+# ---
+# apiVersion: networking.istio.io/v1alpha3
+# kind: VirtualService
+# metadata:
+#   name: pgadmin
+#   namespace: pgadmin
+# spec:
+#   hosts:
+#   - pgadmin.homelab.fidelissauro.dev
+#   gateways:
+#   - pgadmin-gateway
+#   http:
+#   - match:
+#     - uri:
+#         prefix: /
+#     route:
+#     - destination:
+#         host: pgadmin-pgadmin4
+#         port:
+#           number: 80

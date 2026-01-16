@@ -6,6 +6,12 @@ resource "helm_release" "argocd" {
 
   repository = "https://argoproj.github.io/argo-helm"
   chart      = "argo-cd"
+  version    = "9.1.9"
+
+  set {
+    name  = "crds.install"
+    value = "true"
+  }
 
   // toor
   set {
@@ -45,7 +51,7 @@ resource "helm_release" "argocd" {
 
   set {
     name  = "server.extensions.extensionList[0].env[0].value"
-    value = "https://github.com/argoproj-labs/rollout-extension/releases/download/v0.3.6/extension.tar"
+    value = "https://github.com/argoproj-labs/rollout-extension/releases/download/v0.3.7/extension.tar"
   }
 
   set {

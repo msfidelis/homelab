@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: balance-scylla
+  namespace: ledger
+  labels:
+    app: balance-scylla
+spec:
+  clusterIP: None
+  selector:
+    app: balance-scylla
+  ports:
+    - name: cql
+      port: 9042
+      targetPort: 9042
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: balance-scylla
+  namespace: ledger
+  labels:
+    app: balance-scylla
+spec:
+  serviceName: balance-scylla
+  replicas: 1
+  selector:
+    matchLabels:
+      app: balance-scylla
+  template:
+    metadata:
+      labels:
+        app: balance-scylla
+    spec:
+      containers:
+        - name: scylla
+          image: scylladb/scylla:2025.3
+          ports:
+            - name: cql
+              containerPort: 9042
+          args:
+            - "--smp"
+            - "1"
+            - "--memory"
+            - "512M"
+          volumeMounts:
+            - name: scylla-data
+              mountPath: /var/lib/scylla/data
+  volumeClaimTemplates:
+    - metadata:
+        name: scylla-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+        storageClassName: local-path

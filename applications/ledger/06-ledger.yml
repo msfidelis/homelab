@@ -1,0 +1,166 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: eventsourcing-ledger
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:     
+          - shard: "01"
+            cluster: https://kubernetes.default.svc    
+  template:
+    metadata:
+      name: eventsourcing-ledger
+      labels:
+        shard: "{{ shard }}"
+    spec:
+      project: "ledger"
+      source:
+        repoURL: 'http://chartmuseum.chartmuseum.svc.cluster.local:8080'
+        chart: sample
+        targetRevision: 0.1.0
+        helm:
+          releaseName: eventsourcing-ledger
+          valuesObject:
+            app:
+              name: eventsourcing-ledger
+              image: fidelissauro/ledger-event-sourcing:latest
+              namespace: ledger
+              iam: "none"
+              capacity:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits: 
+                  cpu: 200m
+                  memory: 256Mi
+                autoscaling: {}
+                min: 1
+                max: 1
+              rollout:
+                strategy:
+                  canary:
+                    steps:
+                    - setWeight: 100
+              envs:
+                - name: DATABASE_USER
+                  value: "fidelissauro"
+                - name: DATABASE_PASSWORD
+                  value: "doutorequemtemdoutorado"
+                - name: DATABASE_HOST
+                  value: "ledger-postgres-postgresql-hl.ledger"
+                - name: DATABASE_PORT
+                  value: "5432"
+                - name: DATABASE_DB
+                  value: "ledger"
+                - name: DATABASE_SSL_MODE
+                  value: "disable"
+
+                - name: KAFKA_BROKERS
+                  value: "ledger-kafka-controller-headless.ledger:9092"
+
+                - name: KAFKA_TOPIC_CONTA_CRIADA
+                  value: "conta_criada"
+                - name: KAFKA_TOPIC_CONTA_MOVIMENTACAO
+                  value: "conta_movimentacao"
+
+                - name: KAFKA_TOPIC_REHYDRATATE
+                  value: "disabled"
+
+                - name: KAFKA_TOPIC_NOVA_CONTA_REGISTRADA
+                  value: "ledger_nova_conta_registrada"
+                - name: KAFKA_TOPIC_NOVA_TRANSACAO_CONFIRMADA
+                  value: "ledger_nova_transacao_confirmada"
+                - name: KAFKA_TOPIC_SALDO_ATUALIZADO
+                  value: "ledger_saldo_atualizado"
+
+                - name: KAFKA_GROUP_ACCOUNT
+                  value: "ledger-account-group"                  
+                - name: KAFKA_GROUP_TRANSACTION
+                  value: "ledger-transaction-group"
+                - name: KAFKA_GROUP_REHYDRATE
+                  value: "ledger-rehydrate-group"
+
+                - name: PORT
+                  value: "8081"
+                - name: ENVIRONMENT
+                  value: "production"
+                - name: LOG_LEVEL
+                  value: "ledger-rehydrate-group"
+
+              port:
+                name: http-web
+                port: 8081
+                protocol: TCP
+                targetPort: 8081
+              service:
+                type: ClusterIP
+              
+              # Configurações de DNS e rede
+              dnsPolicy: ClusterFirst
+              dnsConfig:
+                options:
+                  - name: ndots
+                    value: "1"
+                  - name: timeout
+                    value: "5"
+                  - name: attempts
+                    value: "3"
+              
+              istio:
+                gateway: 
+                  selector: ingressgateway
+                  # HTTP, HTTP2, GRPC, GRPC-WEB, MONGO, REDIS, MYSQL, TCP
+                  protocol: HTTP 
+                  port: 80
+                host: ledger.homelab.fidelissauro.dev
+                virtualService:
+                  http:
+                    enabled: true
+                    retries:
+                      attempts: 2
+                      perTryTimeout: 2s
+                      retryOn: connect-failure,refused-stream,unavailable,cancelled,503
+                DestinationRule:
+                  enabled: true
+
+              prometheus:
+                scrape: "true"
+                port: 8081
+                path: /metrics
+
+              probes:
+                readinessProbe:
+                  enabled: false
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+                  httpGet:
+                    path: /actuator/health
+                    port: 8080
+                livenessProbe:
+                  enabled: false
+                  initialDelaySeconds: 60
+                  failureThreshold: 10
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  httpGet:
+                    path: /actuator/health
+                    port: 8090
+                startupProbe:
+                  enabled: false
+                  initialDelaySeconds: 30
+                  failureThreshold: 30
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  httpGet:
+                    path: /actuator/health
+                    port: 8090
+
+      destination:
+        server: '{{ cluster }}'
+        namespace: argocd
+      syncPolicy:
+        automated: {}
