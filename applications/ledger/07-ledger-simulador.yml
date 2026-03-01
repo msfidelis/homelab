@@ -67,7 +67,7 @@ spec:
                   value: "ledger-account-group"  
 
                 - name: SIM_NUM_MOVIMENTACOES
-                  value: "1000"
+                  value: "10000"
                 - name: SIM_NUM_WORKERS
                   value: "1"
 

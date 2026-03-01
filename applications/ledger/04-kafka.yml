@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: ledger-kafka
+  name: ledger-kafka-cluster
   namespace: argocd
 spec:
   generators:
@@ -11,7 +11,7 @@ spec:
             cluster: https://kubernetes.default.svc                                 
   template:
     metadata:
-      name: ledger-kafka
+      name: ledger-kafka-cluster
     spec:
       project: "ledger"
       source:
