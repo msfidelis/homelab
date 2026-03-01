@@ -58,7 +58,7 @@ spec:
                 [OUTPUT]
                     Name              loki
                     Match             kube.*
-                    Host              loki-gateway.loki.svc.cluster.local
+                    Host              loki-gateway.loki
                     Port              80
                     tls               off
                     tls.verify        off

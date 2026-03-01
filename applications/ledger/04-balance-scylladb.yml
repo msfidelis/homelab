@@ -33,16 +33,18 @@ spec:
         app: balance-scylla
     spec:
       containers:
-        - name: scylla
-          image: scylladb/scylla:2025.3
+        - name: cassandra
+          image: cassandra:5.0
           ports:
             - name: cql
               containerPort: 9042
-          args:
-            - "--smp"
-            - "1"
-            - "--memory"
-            - "512M"
+          env:
+            - name: CASSANDRA_CLUSTER_NAME
+              value: "balance-cluster"
+            - name: MAX_HEAP_SIZE
+              value: "256M"
+            - name: HEAP_NEWSIZE
+              value: "128M"
           volumeMounts:
             - name: scylla-data
               mountPath: /var/lib/scylla/data

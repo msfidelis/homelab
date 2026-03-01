@@ -17,20 +17,24 @@ spec:
       source:
         repoURL: "registry-1.docker.io" # OCI Repository
         chart: "bitnamicharts/mongodb"
-        targetRevision: "18.1.20" # Chart version
+        targetRevision: "18.6.1" # Chart version
         helm:
           releaseName: state
           valuesObject:
+            replicaCount: 1
+            architecture: standalone
             auth:
-              enabled: true
+              enabled: false
+
+              rootPassword: "doutorequemtemdoutorado"
               usernames:
                 - "fidelissauro"
               passwords:
                 - "doutorequemtemdoutorado"
               databases:
                 - "extrato"
-              diagnosticMode:
-                enabled: true
+            diagnosticMode:
+              enabled: false
             architecture: replicaset 
             image:
               registry: docker.io
@@ -41,6 +45,9 @@ spec:
             persistence:
               enabled: true
               size: 2Gi
+
+            podLabels:
+              sidecar.istio.io/inject: "false"
 
       destination:
         server: '{{ cluster }}'

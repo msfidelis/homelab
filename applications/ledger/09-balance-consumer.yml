@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: statements-consumer
+  name: balance-consumer
   namespace: argocd
 spec:
   generators:
@@ -11,7 +11,7 @@ spec:
             cluster: https://kubernetes.default.svc    
   template:
     metadata:
-      name: statements-consumer
+      name: balance-consumer
       labels:
         shard: "{{ shard }}"
     spec:
@@ -21,11 +21,11 @@ spec:
         chart: sample
         targetRevision: 0.1.0
         helm:
-          releaseName: statements-consumer
+          releaseName: balance-consumer
           valuesObject:
             app:
-              name: statements-consumer
-              image: fidelissauro/ledger-statement:latest
+              name: balance-consumer
+              image: fidelissauro/ledger-balance:latest
 
               namespace: ledger
               iam: "none"
@@ -46,33 +46,38 @@ spec:
                     - setWeight: 100
               envs:
 
-                - name: MONGODB_HOSTS
-                  value: " state-mongodb-0.state-mongodb-headless.ledger:27017"
-                - name: MONGODB_DATABASE
-                  value: "extrato"
-                - name: MONGODB_USERNAME
+                - name: SCYLLA_HOSTS
+                  value: "balance-scylla.ledger:9042"
+                - name: SCYLLA_KEYSPACE
+                  value: "balance_ks"
+                - name: SCYLLA_USERNAME
                   value: ""
-                - name: MONGODB_PASSWORD
+                - name: SCYLLA_PASSWORD
                   value: ""
-
-                - name: MONGODB_CONNECT_TIMEOUT
-                  value: "10s"
-                - name: MONGODB_QUERY_TIMEOUT
+                - name: SCYLLA_CONSISTENCY
+                  value: "QUORUM"
+                - name: SCYLLA_TIMEOUT
                   value: "5s"
-                - name: MONGODB_MAX_POOL_SIZE
-                  value: "100"
-                - name: MONGODB_MIN_POOL_SIZE
-                  value: "10"
-
+                - name: SCYLLA_PROTO_VERSION
+                  value: "4"
+                - name: SCYLLA_RETRY_ATTEMPTS
+                  value: "3"
 
                 - name: KAFKA_BROKERS
                   value: "ledger-kafka-controller-headless.ledger:9092"
 
-                - name: KAFKA_TOPIC_TRANSACTION_CONFIRMED
-                  value: "ledger_nova_transacao_confirmada"
-                - name: KAFKA_GROUP_STATEMENT
-                  value: "statement-ingestion-group"
+                - name: KAFKA_TOPIC_SALDO_ATUALIZADO
+                  value: "ledger_saldo_atualizado"
+                - name: KAFKA_TOPIC_NOVA_CONTA_REGISTRADA
+                  value: "ledger_nova_conta_registrada"
+                - name: KAFKA_TOPIC_TRANSACAO_RATE_LIMITED
+                  value: "ledger_transacao_ratelimited"
 
+                - name: KAFKA_GROUP_BALANCE
+                  value: "balance-consumer-group"
+                - name: KAFKA_GROUP_ACCOUNTS
+                  value: "balance-consumer-group"
+                  
                 - name: PORT
                   value: "8080"
 
@@ -107,7 +112,7 @@ spec:
                   # HTTP, HTTP2, GRPC, GRPC-WEB, MONGO, REDIS, MYSQL, TCP
                   protocol: HTTP 
                   port: 80
-                host: ledger-statement-ingestion.homelab.fidelissauro.dev
+                host: ledger-balance-ingestion.homelab.fidelissauro.dev
                 virtualService:
                   http:
                     enabled: false

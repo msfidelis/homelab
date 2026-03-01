@@ -22,7 +22,7 @@ spec:
           valuesObject:
             app:
               name: shard-router
-              image: ghcr.io/msfidelis/msc-shard-router:latest
+              image: ghcr.io/msfidelis/msc-shard-router:sha-9b7f81d
               namespace: shard-router
               iam: "none"
               capacity:
@@ -65,6 +65,12 @@ spec:
                   value: "http://transactions.shard-03.svc.cluster.local:8080"
                 - name: HASHING_ALGORITHM
                   value: "SHA512"
+                - name: CB_FAILURE_THRESHOLD
+                  value: "5"
+                - name: CB_OPEN_TIMEOUT_SEC
+                  value: "30"
+                - name: CB_HALF_OPEN_SUCCESS_THRESHOLD
+                  value: "2"
               port:
                 name: http-web
                 port: 8080

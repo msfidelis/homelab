@@ -1,0 +1,18 @@
+apiVersion: kube-green.com/v1alpha1
+kind: SleepInfo
+metadata:
+  name: sleep-router
+  namespace: shard-router
+spec:
+  weekdays: "*"
+  sleepAt: "20:05"
+  wakeUpAt: "20:50"
+  timeZone: "America/Sao_Paulo"
+  patches:
+    - target:
+        group: apps
+        kind: ReplicaSet
+      patch: |-
+        - path: /spec/replicas
+          op: replace
+          value: 0
