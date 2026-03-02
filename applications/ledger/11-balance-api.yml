@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: eventsourcing-ledger
+  name: balance-api
   namespace: argocd
 spec:
   generators:
@@ -11,7 +11,7 @@ spec:
             cluster: https://kubernetes.default.svc    
   template:
     metadata:
-      name: eventsourcing-ledger
+      name: balance-api
       labels:
         shard: "{{ shard }}"
     spec:
@@ -21,11 +21,12 @@ spec:
         chart: sample
         targetRevision: 0.1.0
         helm:
-          releaseName: eventsourcing-ledger
+          releaseName: balance-api
           valuesObject:
             app:
-              name: eventsourcing-ledger
-              image: fidelissauro/ledger-event-sourcing:latest
+              name: balance-api
+              image: fidelissauro/ledger-balance-api:latest
+
               namespace: ledger
               iam: "none"
               capacity:
@@ -33,67 +34,49 @@ spec:
                   cpu: 100m
                   memory: 128Mi
                 limits: 
-                  cpu: 500m
+                  cpu: 200m
                   memory: 256Mi
                 autoscaling: {}
-                min: 3
-                max: 3
+                min: 1
+                max: 1
               rollout:
                 strategy:
                   canary:
                     steps:
                     - setWeight: 100
               envs:
-                - name: DATABASE_USER
-                  value: "fidelissauro"
-                - name: DATABASE_PASSWORD
-                  value: "doutorequemtemdoutorado"
-                - name: DATABASE_HOST
-                  value: "ledger-postgres-postgresql-hl.ledger"
-                - name: DATABASE_PORT
-                  value: "5432"
-                - name: DATABASE_DB
-                  value: "ledger"
-                - name: DATABASE_SSL_MODE
-                  value: "disable"
 
-                - name: KAFKA_BROKERS
-                  value: "ledger-kafka-controller-headless.ledger:9092"
-
-                - name: KAFKA_TOPIC_CONTA_CRIADA
-                  value: "conta_criada"
-                - name: KAFKA_TOPIC_CONTA_MOVIMENTACAO
-                  value: "conta_movimentacao"
-
-                - name: KAFKA_TOPIC_REHYDRATATE
-                  value: "disabled"
-
-                - name: KAFKA_TOPIC_NOVA_CONTA_REGISTRADA
-                  value: "ledger_nova_conta_registrada"
-                - name: KAFKA_TOPIC_NOVA_TRANSACAO_CONFIRMADA
-                  value: "ledger_nova_transacao_confirmada"
-                - name: KAFKA_TOPIC_SALDO_ATUALIZADO
-                  value: "ledger_saldo_atualizado"
-
-                - name: KAFKA_GROUP_ACCOUNT
-                  value: "ledger-account-group"                  
-                - name: KAFKA_GROUP_TRANSACTION
-                  value: "ledger-transaction-group"
-                - name: KAFKA_GROUP_REHYDRATE
-                  value: "ledger-rehydrate-group"
-
+                - name: SCYLLA_HOSTS
+                  value: "balance-scylla.ledger:9042"
+                - name: SCYLLA_KEYSPACE
+                  value: "balance_ks"
+                - name: SCYLLA_USERNAME
+                  value: ""
+                - name: SCYLLA_PASSWORD
+                  value: ""
+                - name: SCYLLA_CONSISTENCY
+                  value: "QUORUM"
+                - name: SCYLLA_TIMEOUT
+                  value: "5s"
+                - name: SCYLLA_PROTO_VERSION
+                  value: "4"
+                - name: SCYLLA_RETRY_ATTEMPTS
+                  value: "3"
+             
                 - name: PORT
-                  value: "8081"
+                  value: "8080"
+
                 - name: ENVIRONMENT
                   value: "production"
+
                 - name: LOG_LEVEL
-                  value: "ledger-rehydrate-group"
+                  value: "info"                  
 
               port:
                 name: http-web
-                port: 8081
+                port: 8080
                 protocol: TCP
-                targetPort: 8081
+                targetPort: 8080
               service:
                 type: ClusterIP
               
@@ -102,7 +85,7 @@ spec:
               dnsConfig:
                 options:
                   - name: ndots
-                    value: "1"
+                    value: "4"
                   - name: timeout
                     value: "5"
                   - name: attempts
@@ -114,21 +97,21 @@ spec:
                   # HTTP, HTTP2, GRPC, GRPC-WEB, MONGO, REDIS, MYSQL, TCP
                   protocol: HTTP 
                   port: 80
-                host: ledger.homelab.fidelissauro.dev
+                host: balance.homelab.fidelissauro.dev
                 virtualService:
                   http:
-                    enabled: true
+                    enabled: false
                     retries:
                       attempts: 2
                       perTryTimeout: 2s
                       retryOn: connect-failure,refused-stream,unavailable,cancelled,503
                 DestinationRule:
-                  enabled: true
+                  enabled: false
 
               prometheus:
                 scrape: "true"
-                port: 8081
-                path: /metrics
+                port: 15021
+                path: /stats/prometheus
 
               probes:
                 readinessProbe:
