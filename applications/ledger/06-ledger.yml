@@ -78,7 +78,7 @@ spec:
                 - name: KAFKA_GROUP_ACCOUNT
                   value: "ledger-account-group"                  
                 - name: KAFKA_GROUP_TRANSACTION
-                  value: "ledger-transaction-group"
+                  value: "ledger-transaction-group-2"
                 - name: KAFKA_GROUP_REHYDRATE
                   value: "ledger-rehydrate-group"
 

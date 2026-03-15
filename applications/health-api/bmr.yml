@@ -37,7 +37,7 @@ metadata:
   name: bmr-grpc
   namespace: nutrition
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: bmr-grpc

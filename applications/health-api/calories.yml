@@ -36,7 +36,7 @@ metadata:
   name: calories-grpc
   namespace: nutrition
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: calories-grpc
