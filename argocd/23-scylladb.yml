@@ -1,145 +1,145 @@
-apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
-metadata:
-  name: scylla-operator
-  namespace: argocd
-spec:
-  generators:
-    - list:
-        elements:
-          - cluster: https://kubernetes.default.svc                               
-  template:
-    metadata:
-      name: scylla-operator
-    spec:
-      project: "system"
-      source:
-        repoURL: "https://scylla-operator-charts.storage.googleapis.com/stable" # OCI Repository
-        chart: "scylla-operator"
-        targetRevision: "v1.19.0" # Chart version
+# apiVersion: argoproj.io/v1alpha1
+# kind: ApplicationSet
+# metadata:
+#   name: scylla-operator
+#   namespace: argocd
+# spec:
+#   generators:
+#     - list:
+#         elements:
+#           - cluster: https://kubernetes.default.svc                               
+#   template:
+#     metadata:
+#       name: scylla-operator
+#     spec:
+#       project: "system"
+#       source:
+#         repoURL: "https://scylla-operator-charts.storage.googleapis.com/stable" # OCI Repository
+#         chart: "scylla-operator"
+#         targetRevision: "v1.19.0" # Chart version
 
-      destination:
-        server: '{{ cluster }}'
-        namespace: scylla-operator
-      syncPolicy:
-        syncOptions:
-          - CreateNamespace=true
-          - ServerSideApply=true
-        automated: {}
----
-apiVersion: scylla.scylladb.com/v1alpha1
-kind: NodeConfig
-metadata:
-  name: scylladb-nodepool-1
-spec:
-  localDiskSetup:
-    loopDevices:
-    - name: persistent-volumes
-      imagePath: /var/lib/persistent-volumes.img
-      size: 80Gi
-    filesystems:
-    - device: /dev/loops/persistent-volumes
-      type: xfs
-    mounts:
-    - device: /dev/loops/persistent-volumes
-      mountPoint: /var/lib/persistent-volumes
-      unsupportedOptions:
-      - prjquota
-  sysctls:
-  - name: fs.aio-max-nr
-    value: "30000000"
-  - name: fs.file-max
-    value: "9223372036854775807"
-  - name: fs.nr_open
-    value: "1073741816"
-  - name: fs.inotify.max_user_instances
-    value: "1200"
-  - name: vm.swappiness
-    value: "1"
-  - name: vm.vfs_cache_pressure
-    value: "2000"
-  placement:
-    nodeSelector:
-      scylla.scylladb.com/node-type: scylla
-    tolerations:
-    - effect: NoSchedule
-      key: scylla-operator.scylladb.com/dedicated
-      operator: Equal
-      value: scyllaclusters
----
-apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
-metadata:
-  name: scylla-manager
-  namespace: argocd
-spec:
-  generators:
-    - list:
-        elements:
-          - cluster: https://kubernetes.default.svc                               
-  template:
-    metadata:
-      name: scylla-manager
-    spec:
-      project: "system"
-      source:
-        repoURL: "https://scylla-operator-charts.storage.googleapis.com/stable" # OCI Repository
-        chart: "scylla-manager"
-        targetRevision: "v1.19.0" # Chart version
-        helm:
-          releaseName: "metrics-server"      
-          valuesObject:
-            scylla:
-              datacenter: us-east-1
-              racks:
-              - name: us-east-1b
-                members: 2
-                storage:
-                  capacity: 1G
-                  storageClassName: local-path
-                resources:
-                  limits:
-                    cpu: 1
-                    memory: 200Mi
-                  requests:
-                    cpu: 1
-                    memory: 200Mi
-                placement: {}
-      destination:
-        server: '{{ cluster }}'
-        namespace: scylla-manager
-      syncPolicy:
-        syncOptions:
-          - CreateNamespace=true
-          - ServerSideApply=true
-        automated: {}
----
-apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
-metadata:
-  name: scylla
-  namespace: argocd
-spec:
-  generators:
-    - list:
-        elements:
-          - cluster: https://kubernetes.default.svc                               
-  template:
-    metadata:
-      name: scylla
-    spec:
-      project: "system"
-      source:
-        repoURL: "https://scylla-operator-charts.storage.googleapis.com/stable" # OCI Repository
-        chart: "scylla"
-        targetRevision: "v1.19.0" # Chart version
+#       destination:
+#         server: '{{ cluster }}'
+#         namespace: scylla-operator
+#       syncPolicy:
+#         syncOptions:
+#           - CreateNamespace=true
+#           - ServerSideApply=true
+#         automated: {}
+# ---
+# apiVersion: scylla.scylladb.com/v1alpha1
+# kind: NodeConfig
+# metadata:
+#   name: scylladb-nodepool-1
+# spec:
+#   localDiskSetup:
+#     loopDevices:
+#     - name: persistent-volumes
+#       imagePath: /var/lib/persistent-volumes.img
+#       size: 80Gi
+#     filesystems:
+#     - device: /dev/loops/persistent-volumes
+#       type: xfs
+#     mounts:
+#     - device: /dev/loops/persistent-volumes
+#       mountPoint: /var/lib/persistent-volumes
+#       unsupportedOptions:
+#       - prjquota
+#   sysctls:
+#   - name: fs.aio-max-nr
+#     value: "30000000"
+#   - name: fs.file-max
+#     value: "9223372036854775807"
+#   - name: fs.nr_open
+#     value: "1073741816"
+#   - name: fs.inotify.max_user_instances
+#     value: "1200"
+#   - name: vm.swappiness
+#     value: "1"
+#   - name: vm.vfs_cache_pressure
+#     value: "2000"
+#   placement:
+#     nodeSelector:
+#       scylla.scylladb.com/node-type: scylla
+#     tolerations:
+#     - effect: NoSchedule
+#       key: scylla-operator.scylladb.com/dedicated
+#       operator: Equal
+#       value: scyllaclusters
+# ---
+# apiVersion: argoproj.io/v1alpha1
+# kind: ApplicationSet
+# metadata:
+#   name: scylla-manager
+#   namespace: argocd
+# spec:
+#   generators:
+#     - list:
+#         elements:
+#           - cluster: https://kubernetes.default.svc                               
+#   template:
+#     metadata:
+#       name: scylla-manager
+#     spec:
+#       project: "system"
+#       source:
+#         repoURL: "https://scylla-operator-charts.storage.googleapis.com/stable" # OCI Repository
+#         chart: "scylla-manager"
+#         targetRevision: "v1.19.0" # Chart version
+#         helm:
+#           releaseName: "metrics-server"      
+#           valuesObject:
+#             scylla:
+#               datacenter: us-east-1
+#               racks:
+#               - name: us-east-1b
+#                 members: 2
+#                 storage:
+#                   capacity: 1G
+#                   storageClassName: local-path
+#                 resources:
+#                   limits:
+#                     cpu: 1
+#                     memory: 200Mi
+#                   requests:
+#                     cpu: 1
+#                     memory: 200Mi
+#                 placement: {}
+#       destination:
+#         server: '{{ cluster }}'
+#         namespace: scylla-manager
+#       syncPolicy:
+#         syncOptions:
+#           - CreateNamespace=true
+#           - ServerSideApply=true
+#         automated: {}
+# ---
+# apiVersion: argoproj.io/v1alpha1
+# kind: ApplicationSet
+# metadata:
+#   name: scylla
+#   namespace: argocd
+# spec:
+#   generators:
+#     - list:
+#         elements:
+#           - cluster: https://kubernetes.default.svc                               
+#   template:
+#     metadata:
+#       name: scylla
+#     spec:
+#       project: "system"
+#       source:
+#         repoURL: "https://scylla-operator-charts.storage.googleapis.com/stable" # OCI Repository
+#         chart: "scylla"
+#         targetRevision: "v1.19.0" # Chart version
 
-      destination:
-        server: '{{ cluster }}'
-        namespace: scylla
-      syncPolicy:
-        syncOptions:
-          - CreateNamespace=true
-          - ServerSideApply=true
-        automated: {}
+#       destination:
+#         server: '{{ cluster }}'
+#         namespace: scylla
+#       syncPolicy:
+#         syncOptions:
+#           - CreateNamespace=true
+#           - ServerSideApply=true
+#         automated: {}
 

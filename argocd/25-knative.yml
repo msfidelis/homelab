@@ -1,0 +1,52 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: knative-operator
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - cluster: https://kubernetes.default.svc
+  template:
+    metadata:
+      name: knative-operator
+    spec:
+      project: "system"
+      source:
+        repoURL: "https://knative.github.io/operator"
+        chart: "knative-operator"
+        targetRevision: "1.21.1"
+        helm:
+          releaseName: "knative-operator"
+          valuesObject:
+            crds:
+              enabled: true
+      destination:
+        server: "{{ cluster }}"
+        namespace: knative
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+        automated: {}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: knative-serving
+---
+apiVersion: operator.knative.dev/v1beta1
+kind: KnativeServing
+metadata:
+  name: knative-serving
+  namespace: knative-serving
+spec:
+  # ingress:
+  #   kourier:
+  #     enabled: true
+  #     service-type: NodePort
+  #     http-port: 30120
+  # config:
+  #   network:
+  #     ingress-class: "kourier.ingress.networking.knative.dev"
+  version: "1.21.0"
