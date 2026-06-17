@@ -1,0 +1,143 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: research-gate-worker
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:     
+          - shard: "01"
+            cluster: https://kubernetes.default.svc    
+  template:
+    metadata:
+      name: research-gate-worker
+    spec:
+      project: "research-gate"
+      source:
+        repoURL: 'http://chartmuseum.chartmuseum.svc.cluster.local:8080'
+        chart: sample
+        targetRevision: 0.1.0
+        helm:
+          releaseName: research-gate-worker
+          valuesObject:
+            app:
+              name: research-gate-worker
+              image: fidelissauro/research-gate-worker:latest
+              namespace: research-gate
+              iam: "none"
+              capacity:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits: 
+                  cpu: 500m
+                  memory: 256Mi
+                autoscaling: {}
+                min: 1
+                max: 3
+              rollout:
+                strategy:
+                  canary:
+                    steps:
+                    - setWeight: 100
+              envs:
+                - name: DATABASE_URL
+                  value: "postgresql://fidelissauro:doutorequemtemdoutorado@research-gate-postgres-postgresql-hl.research-gate:5432/research-gate?sslmode=disable"
+                - name: REDIS_URL
+                  value: "redis://research-gate-redis-headless.research-gate:6379"
+                - name: WORKER_INTERVAL_HOURS
+                  value: "12"
+                - name: WORKER_RUN_ON_STARTUP
+                  value: "true"
+                - name: MAX_WORKER_CONCURRENCY
+                  value: "10"
+                - name: MAX_RESULTS_PER_SOURCE
+                  value: "100"
+                - name: SEMANTIC_SCHOLAR_API_KEY
+                  value: "-"
+                - name: PUBMED_API_KEY
+                  value: "-"
+                - name: IEEE_API_KEY
+                  value: "-"
+                - name: METRICS_PORT
+                  value: "9090"
+
+
+              port:
+                name: http-web
+                port: 8080
+                protocol: TCP
+                targetPort: 8080
+              service:
+                type: ClusterIP
+              
+              # Configurações de DNS e rede
+              dnsPolicy: ClusterFirstWithHostNet
+              dnsConfig:
+                options:
+                  - name: ndots
+                    value: "5"
+                  - name: timeout
+                    value: "5"
+                  - name: attempts
+                    value: "3"
+              
+              istio:
+                sidecard:
+                  enabled: false
+                gateway: 
+                  selector: ingressgateway
+                  # HTTP, HTTP2, GRPC, GRPC-WEB, MONGO, REDIS, MYSQL, TCP
+                  protocol: HTTP 
+                  port: 80
+                host: research-gate-worker.homelab.fidelissauro.dev
+                virtualService:
+                  http:
+                    enabled: false
+                    retries:
+                      attempts: 2
+                      perTryTimeout: 2s
+                      retryOn: connect-failure,refused-stream,unavailable,cancelled,503
+                DestinationRule:
+                  enabled: false
+
+              prometheus:
+                scrape: "true"
+                port: 8080
+                path: /metrics
+
+              probes:
+                readinessProbe:
+                  enabled: false
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+                  httpGet:
+                    path: /health
+                    port: 8080
+                livenessProbe:
+                  enabled: false
+                  initialDelaySeconds: 60
+                  failureThreshold: 10
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  httpGet:
+                    path: /health
+                    port: 8080
+                startupProbe:
+                  enabled: false
+                  initialDelaySeconds: 30
+                  failureThreshold: 30
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  httpGet:
+                    path: /health
+                    port: 8080
+
+      destination:
+        server: '{{ cluster }}'
+        namespace: "research-gate"
+      syncPolicy:
+        automated: {}

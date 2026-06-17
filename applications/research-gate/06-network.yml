@@ -1,0 +1,47 @@
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: worker-egress
+#   namespace: research-gate
+#   labels:
+#     app.kubernetes.io/name: worker
+#     app.kubernetes.io/component: worker
+#     app.kubernetes.io/part-of: research-gate
+# spec:
+#   podSelector:
+#     matchLabels:
+#       app.kubernetes.io/name: worker
+#       app.kubernetes.io/component: worker
+#   policyTypes:
+#     - Egress
+#   egress:
+#     # DNS (CoreDNS dentro do cluster)
+#     - ports:
+#         - protocol: UDP
+#           port: 53
+#         - protocol: TCP
+#           port: 53
+#     # HTTPS — APIs externas (arxiv, crossref, semanticscholar, openalex, ieee, pubmed, doaj)
+#     - ports:
+#         - protocol: TCP
+#           port: 443
+#     # HTTP — fallback para APIs que ainda usam http (ex: doaj)
+#     - ports:
+#         - protocol: TCP
+#           port: 80
+#     # PostgreSQL interno
+#     - to:
+#         - podSelector:
+#             matchLabels:
+#               app.kubernetes.io/component: postgres
+#       ports:
+#         - protocol: TCP
+#           port: 5432
+#     # Redis interno
+#     - to:
+#         - podSelector:
+#             matchLabels:
+#               app.kubernetes.io/component: redis
+#       ports:
+#         - protocol: TCP
+#           port: 6379

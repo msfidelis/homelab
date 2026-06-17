@@ -23,6 +23,7 @@ spec:
       labels:
         app: {{ .Values.app.name }}
         name: {{ .Values.app.name }}
+        sidecar.istio.io/inject: "{{ if .Values.app.istio.sidecard.enabled }}true{{ else }}false{{ end }}"
         version: "{{ .Values.app.version | default .Release.Revision }}"
     spec:
       serviceAccountName: {{ .Values.app.name }}

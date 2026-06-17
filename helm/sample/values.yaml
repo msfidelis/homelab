@@ -64,6 +64,8 @@ app:
   service:
     type: ClusterIP
   istio:
+    sidecard:
+      enabled: true
     gateway: 
       selector: ingressgateway
       # HTTP, HTTP2, GRPC, GRPC-WEB, MONGO, REDIS, MYSQL, TCP
